@@ -531,12 +531,12 @@ Maven 自带的maven-jar-plugin插件不具备这种能力，于是需要引入S
 
 再看一下父级pom中的定义：
 
-<img src="assets/image-20240612102246263.png" alt="image-20240612102246263" style="zoom:50%;" />
+![image-20240612102246263.png](assets/image-20240612102246263.png)
 
 这里没有指定phase，插件目标是怎么绑定到package阶段的呢？
 
 这是因为在编写插件的时候，在插件的配置文件中就已经指定了repackage这个插件目标绑定在package这个阶段上了，在spring-boot-maven-plugin-2.6.7.jar 这个包中，我们可以找到一个plugin.xml的配置文件，打开后可以查看到如下的内容：
-<img src="assets/image-20240612102351379.png" alt="image-20240612102351379" style="zoom: 50%;" />
+![image-20240612102351379.png](assets/image-20240612102351379.png)
 
 # Maven 多模块管理
 
@@ -553,7 +553,7 @@ Maven 自带的maven-jar-plugin插件不具备这种能力，于是需要引入S
 
 如下图所示，Dubbo 项目就被分成了多个子模块比如 dubbo-common（公共逻辑模块）、dubbo-remoting（远程通讯模块）、dubbo-rpc（远程调用模块）。
 
-<img src="assets/image-20240612095019468.png" alt="image-20240612095019468" style="zoom:50%;" />
+![image-20240612095019468.png](assets/image-20240612095019468.png)
 
 # 参考
 

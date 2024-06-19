@@ -64,7 +64,7 @@
 - 每个栈由多个栈帧（Frame）组成，对应着每次方法调用时所占用的内存 
 - 每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法 
 
-<img src="assets/image-20240617144108850.png" alt="image-20240617144108850" style="zoom:50%;" />
+![image-20240617144108850.png](assets/image-20240617144108850.png)
 
 ## 线程上下文切换
 
@@ -82,7 +82,7 @@
 - 状态包括程序计数器、虚拟机栈中每个栈帧的信息，如局部变量、操作数栈、返回地址等 
 - 上下文 频繁发生会影响性能
 
-<img src="assets/image-20240617144212928.png" alt="image-20240617144212928" style="zoom:33%;" />
+![image-20240617144212928.png](assets/image-20240617144212928.png)
 
 从main线程切换到T1线程，会保存main线程的状态
 
@@ -173,7 +173,7 @@ t1.start();
 
 ## 常用方法
 
-<img src="assets/image-20240617144308911.png" alt="image-20240617144308911" style="zoom:50%;" />
+![image-20240617144308911.png](assets/image-20240617144308911.png)
 
 ### start() 与 run()
 
@@ -658,7 +658,7 @@ synchronized static void method() {
 
 每个java对象都可以关联一个操作系统的monitor对象，如果使用sychronized给对象上锁(重量级)之后，该对象头的mark word中就被设置指向monitor对象的指针。
 
-<img src="./images/Monitor.png" style="zoom: 50%;" />
+![Monitor.png](./images/Monitor.png)
 
 - 当线程执行到临界区代码时，如果使用了synchronized，会先查询synchronized中所指定的对象(obj)**是否绑定了Monitor**。
   - 如果**没有绑定**，则会先去与Monitor绑定，也就是将对象头中的**Mark Word**置为Monitor指针，并且将Owner设为当前线程。
@@ -694,7 +694,7 @@ synchronized static void method() {
 
 **java对象的布局**
 
-<img src="./images/对象在内存中的布局.png" style="zoom: 80%;" />
+![对象在内存中的布局.png](./images/对象在内存中的布局.png)
 
 - 对象头：当一个线程尝试访问sychronzied修饰的代码块时，它首先要获得锁，这个锁时存在锁的对象头中。
 - 实例数据：类中定义的成员变量。
@@ -702,7 +702,7 @@ synchronized static void method() {
 
 64位虚拟机的mark word:
 
-<img src="./images/对象头-锁.png" style="zoom: 67%;" />
+![对象头-锁.png](./images/对象头-锁.png)
 
 **偏向锁**
 
@@ -747,15 +747,15 @@ synchronized static void method() {
 
 - 判断当前对象是否处于无锁状态(hashcode,0,01)，如果是，创建**锁记录**（Lock Record）对象，每个线程的栈帧都会包含一个锁记录对象，内部可以存储锁定对象的mark word（不再一开始就使用Monitor）。
 
-<img src="./images/轻量级锁.png" style="zoom:75%;" />
+![轻量级锁.png](./images/轻量级锁.png)
 
 - 让锁记录中的Object reference指向锁对象（Object），并尝试用cas去替换Object中的mark word，将此mark word放入lock record中保存.
 
-<img src="./images/轻量级锁1.png" style="zoom:75%;" />
+![轻量级锁1.png](./images/轻量级锁1.png)
 
 - 如果cas替换成功，则将Object的对象头替换为**锁记录的地址**和**状态 00（轻量级锁状态）**，并由该线程给对象加锁.
 
-<img src="./images/轻量级锁2.png" style="zoom:75%;" />
+![轻量级锁2.png](./images/轻量级锁2.png)
 
 - 如果失败则判断当前对象的Mark Word是否指向当前线程的栈帧.
   - 如果是则表示当前线程已经持有当前对象的锁，则进入sychronized锁重入，再加一条Lock Record作为重入的计数，但是此刻锁记录是null. 
@@ -1077,7 +1077,7 @@ j=...
 
 - 事实上，现代处理器会设计为一个时钟周期完成一条执行时间长的 CPU 指令。为什么这么做呢？可以想到指令还可以再划分成一个个更小的阶段，例如，每条指令都可以分为： **取指令 - 指令译码 - 执行指令 - 内存访问 - 数据写回** 这5 个阶段
 
-<img src="./images/指令重排优化.png" style="zoom:75%;" />
+![指令重排优化.png](./images/指令重排优化.png)
 
 - 在不改变程序结果的前提下，这些指令的各个阶段可以通过**重排序**和**组合**来实现**指令级并行**
 - 指令重排的前提是，重排指令**不能影响结果**，例如
@@ -1097,7 +1097,7 @@ int b = a - 5;
 
 现代 CPU 支持多级**指令流水线**，例如支持**同时**执行 **取指令 - 指令译码 - 执行指令 - 内存访问 - 数据写回** 的处理器，就可以称之为五级指令流水线。这时 CPU 可以在一个时钟周期内，同时运行五条指令的不同阶段（相当于一 条执行时间长的复杂指令），IPC = 1，本质上，流水线技术并不能缩短单条指令的执行时间，但它变相地提高了指令地**吞吐率**。
 
-<img src="./images/流水线处理器.png" style="zoom:75%;" />
+![流水线处理器.png](./images/流水线处理器.png)
 
 **在多线程环境下，指令重排序可能导致出现意料之外的结果**
 
@@ -1151,7 +1151,7 @@ public void actor1(I_Result r){
 
 ## 数据结构
 
-<img src=".\images\threadLocal的数据结构.png" style="zoom:67%;" />
+![.\images\threadLocal的数据结构.png](.\images\threadLocal的数据结构.png)
 
 - Thread类有一个类型为ThreadLocal.ThreadLocalMap的实例变量threadLocals，也就是说每一个线程都有一个自己的ThreadLocalMap。
 - ThreadLocal有自己独立的实现，其中key为ThreadLocal的一个弱引用，value为变量值。
@@ -1230,7 +1230,7 @@ public class ThreadLocalExample implements Runnable{
 
 ### 5.4.1 set(value)方法
 
-<img src=".\images\threadLocal_set.png" style="zoom: 67%;" />
+![.\images\threadLocal_set.png](.\images\threadLocal_set.png)
 
 - 首先获取当前线程，并根据当前线程获取一个map
 - 如果获取的map不为空，则将参数设置到map中(当前ThreadLocal的一个弱引用引用作为key)
@@ -1791,7 +1791,7 @@ https://blog.csdn.net/u010445301/article/details/125590758
 
 > CLH(Craig,Landin,and Hagersten)队列是一个虚拟的双向队列（虚拟的双向队列即不存在队列实例，仅存在结点之间的关联关系）。AQS 是将每条请求共享资源的线程封装成一个 CLH 锁队列的一个结点（Node）来实现锁的分配。
 
-<img src="assets/image-20240617173250683.png" alt="image-20240617173250683" style="zoom:50%;" />
+![image-20240617173250683.png](assets/image-20240617173250683.png)
 
 AQS 使用一个 int 成员变量来表示同步状态，通过内置的 FIFO 队列来完成获取资源线程的排队工作。AQS 使用 CAS 对该同步状态进行原子操作实现对其值的修改。
 

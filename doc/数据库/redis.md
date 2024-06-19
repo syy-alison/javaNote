@@ -80,7 +80,7 @@ Memcached 是分布式缓存最开始兴起的那会，比较常用的。后来�
   - set
   - sorted_set
 
-<img src="./images/redis存储空间.png" style="zoom:60%;" />
+![redis存储空间.png](./images/redis存储空间.png)
 
 ## 1.1 String
 
@@ -130,7 +130,7 @@ append key value
   - 如果field数量较少，存储结构优化为类数组结构
   - 如果field数量较多，存储结构使用HashMap结构
 
-<img src="./images/hash.png" style="zoom:60%;" />
+![hash.png](./images/hash.png)
 
 **基本操作**
 
@@ -177,7 +177,7 @@ hdecrby key field increment
 - list类型：保存多个数据，底层使用**双向链表**存储结构实现
 - **元素有序，且可重**
 
-<img src="./images/list.png" style="zoom:60%;" />
+![list.png](./images/list.png)
 
 **基本操作**
 
@@ -225,7 +225,7 @@ lrem key count value
 
 - set类型：与hash存储结构完全相同，仅存储键，不存储值（nil），并且值是不允许重复的
 
-<img src="./images/set.png" style="zoom:60%;" />
+![set.png](./images/set.png)
 
 **基本操作**
 
@@ -276,7 +276,7 @@ smove source destination key
 - 需要的存储结构：新的存储模型，可以保存**可排序**的数据
 - sorted_set类型：在set的存储结构基础上添加可排序字段
 
-<img src="./images/sorted_set.png" style="zoom:60%;" />
+![sorted_set.png](./images/sorted_set.png)
 
 
 
@@ -501,7 +501,7 @@ io-threads 4 #官网建议4核的机器建议设置为2或3个线程，8核的�
   - 若硬币为反面，则插入过程结束
 - 为了避免以下情况，需要在每个链表的头部设置一个 **负无穷** 的元素
 
-<img src="./images/跳跃表插入.jpg" style="zoom:67%;" />
+![跳跃表插入.jpg](./images/跳跃表插入.jpg)
 
 如果K大于链表的层数,需要添加新的层。
 
@@ -553,7 +553,7 @@ MySQL使用B+树的是因为：**叶子节点存储数据，非叶子节点存�
   - 将当前**数据状态**进行保存，**快照形式**，存储数据结果，存储格式简单，关注点在数据，这种方式称为**RDB**
   - 将数据的**操作过程**进行保存，**日志形式**，存储操作过程，存储格式复杂，关注点在数据的操作过程，这种方式称为**AOF**
 
-<img src="./images/redis持久化.png" style="zoom:60%;" />
+![redis持久化.png](./images/redis持久化.png)
 
 ## 4.1 RDB
 
@@ -625,7 +625,7 @@ save second changes
 
 - 配置原理
 
-<img src="./images/save配置原理.png" style="zoom:75%;" />
+![save配置原理.png](./images/save配置原理.png)
 
 - save配置要根据实际业务情况进行设置，频度过高或过低都会出现性能问题，结果可能是灾难性的
 - save配置中对于second与changes设置通常具有**互补对应**关系（一个大一个小），尽量不要设置成包含性关系.
@@ -633,7 +633,7 @@ save second changes
 
 ### 4.1.4 RDB启动方式对比
 
-<img src="./images/RDB对比.png" style="zoom:75%;" />
+![RDB对比.png](./images/RDB对比.png)
 
 ### 4.1.5 RDB优点
 
@@ -708,7 +708,7 @@ appendfsync always|everysec|no   -- AOF写的三种策略
 
 ## 4.3 RDB VS AOF
 
-<img src="./images/RDBVSAOF.png" style="zoom:75%;" />
+![RDBVSAOF.png](./images/RDBVSAOF.png)
 
 **RDB和AOF如何选择**
 
@@ -880,7 +880,7 @@ Redis是一种内存级数据库，所有数据均存放在内存中，内存中
 
 ### 6.2.3 定期删除
 
-<img src="./images/定期删除.png" style="zoom:60%;" />
+![定期删除.png](./images/定期删除.png)
 
 - 周期性轮询redis库中的时效性数据，采用随机抽取的策略，利用过期数据占比的方式控制删除频度
 - 特点1：CPU性能占用设置有峰值，检测频度可自定义设置
@@ -1060,9 +1060,9 @@ Redis 提供 6 种数据淘汰策略：
 
   - slave延迟由slave发送**REPLCONF ACK**命令做确认
 
-<img src="./images/命令传播阶段.png" style="zoom:60%;" />
+![命令传播阶段.png](./images/命令传播阶段.png)
 
-<img src="./images/主从复制工作流程.png" style="zoom:60%;" />
+![主从复制工作流程.png](./images/主从复制工作流程.png)
 
 # 八、哨兵
 
@@ -1101,7 +1101,7 @@ Redis 提供 6 种数据淘汰策略：
 - 各个哨兵将得到的信息相互同步（信息对称）
 - 哨兵实时的通过cmd连接向master和slave发送hello获取master和slave的状态，并同步给其他哨兵。
 
-<img src="./images/哨兵信息同步.png" style="zoom:60%;" />
+![哨兵信息同步.png](./images/哨兵信息同步.png)
 
 ## 8.3 故障转移
 
@@ -1161,7 +1161,7 @@ Redis 提供 6 种数据淘汰策略：
 - 一次命中，直接返回
 - 一次未命中，告知具体的位置，key再直接去找对应的库保存数据
 
-<img src="./images/集群.png" style="zoom:75%;" />
+![集群.png](./images/集群.png)
 
 # 十、缓存穿透与缓存雪崩
 
@@ -1183,7 +1183,7 @@ Redis 提供 6 种数据淘汰策略：
 
 但是，需要注意的是布隆过滤器可能会存在误判的情况。总结来说就是： **布隆过滤器说某个元素存在，小概率会误判。布隆过滤器说某个元素不在，那么这个元素一定不在。**
 
-<img src="./images/加入布隆过滤器后的缓存处理流程.png" style="zoom:67%;" />
+![加入布隆过滤器后的缓存处理流程.png](./images/加入布隆过滤器后的缓存处理流程.png)
 
 ### 布隆过滤器
 
@@ -1208,7 +1208,7 @@ Redis 提供 6 种数据淘汰策略：
 - 无法进行删除操作，比如hello经过hash运算计算为7，则数组的下标为7的位置为1，但是如果“你好”经过hash运算结果也为7,如果把下标为7的位置的1改为0,就会删除掉hello和你好两个数据。
 - 会有误判率，hash函数越多以及位数组长度越大，误判率都会减小，但是计算就想对比较慢。O(k)的时间复杂度，k位hash函数的个数。
 
-<img src="./images/布隆过滤器.png" style="zoom:60%;" />
+![布隆过滤器.png](./images/布隆过滤器.png)
 
 ## 10.2 缓存雪崩
 

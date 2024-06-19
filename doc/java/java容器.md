@@ -8,7 +8,7 @@
 - 在java中，除了以`map`结尾的类外，其他的类都实现了`Collection`类。
 - 以`map`为结尾的类都实现了`map`接口。
 
-<img src="assets/image-20240615103839737.png" alt="image-20240615103839737" style="zoom:50%;" />
+![image-20240615103839737.png](assets/image-20240615103839737.png)
 
 # 2、 List,set,map,Queue对比
 1. **应用场景**
@@ -581,7 +581,7 @@ public interface BlockingQueue<E> extends Queue<E> {
 
 `BlockingQueue` 常用于生产者-消费者模型中，生产者线程会向队列中添加数据，而消费者线程会从队列中取出数据进行处理。
 
-<img src="assets/image-20240615195827727.png" alt="image-20240615195827727" style="zoom:25%;" />
+![image-20240615195827727.png](assets/image-20240615195827727.png)
 
 ![image-20240615195842244](/assets/image-20240615195842244.png)
 
@@ -609,7 +609,7 @@ Java 中常用的阻塞队列实现类有以下几种：
 
 - **JDK1.8之后：数组+ 链表/红黑树。**
 
-<img src="./images/HashMap存储结构.png" style="zoom: 67%;" />
+![HashMap存储结构.png](./images/HashMap存储结构.png)
 
 ```java
 transient Entry[] table;
@@ -957,7 +957,7 @@ static final int tableSizeFor(int cap) {
 
 **2. resize的时候导致的多线程数据不一致。**
 
-<img src="./images/多线程hashmap的resize.png" style="zoom: 67%;" />
+![多线程hashmap的resize.png](./images/多线程hashmap的resize.png)
 
 我们假设有两个线程同时需要执行resize操作，我们原来的桶数量为2，记录数为3，需要resize桶到4，原来的记录分别为：[3,A],[7,B],[5,C]，在原来的map里面，我们发现这三个entry都落到了第二个桶里面。
  假设线程thread1执行到了transfer方法的Entry next = e.next这一句，然后时间片用完了，此时的e = [3,A], next = [7,B]。线程thread2被调度执行并且顺利完成了resize操作，需要注意的是，此时的[7,B]的next为[3,A]。此时线程thread1重新被调度运行，此时的thread1持有的引用是已经被thread2 resize之后的结果。线程thread1首先将[3,A]迁移到新的数组上，然后再处理[7,B]，而[7,B]被链接到了[3,A]的后面，处理完[7,B]之后，就需要处理[7,B]的next了啊，而通过thread2的resize之后，[7,B]的next变为了[3,A]，此时，[3,A]和[7,B]形成了环形链表，在get的时候，如果get的key的桶索引和[3,A]和[7,B]一样，那么就会陷入死循环。
@@ -1141,7 +1141,7 @@ public class HashMapTest {
 
 #### **JDK1.7**
 
-<img src="assets/image-20240615214627839.png" alt="image-20240615214627839" style="zoom: 25%;" />
+![image-20240615214627839.png](assets/image-20240615214627839.png)
 
 1. **数据结构：**首先将数据分为一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据时，其他段的数据也能被其他线程访问。**分段的数组+链表**
 
@@ -1187,7 +1187,7 @@ public class HashMapTest {
 
 可以发现 Java8 的 ConcurrentHashMap 相对于 Java7 来说变化比较大，不再是之前的 **Segment 数组 + HashEntry 数组 + 链表**，而是 **Node 数组 + 链表 / 红黑树**。当冲突链表达到一定长度时，链表会转换成红黑树。
 
-<img src="assets/image-20240615214612012.png" alt="image-20240615214612012" style="zoom:25%;" />
+![image-20240615214612012.png](assets/image-20240615214612012.png)
 
 1. **初始化 initTable()**
 

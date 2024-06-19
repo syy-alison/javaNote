@@ -17,7 +17,7 @@ Spring 是重量级企业开发框架 Enterprise JavaBean（EJB） 的替代品�
 
 Spring 旨在简化 J2EE 企业应用程序开发。Spring Boot 旨在简化 Spring 开发（减少配置文件，开箱即用！）。
 
-<img src="assets/image-20240618215140744.png" alt="image-20240618215140744" style="zoom:33%;" />
+![image-20240618215140744.png](assets/image-20240618215140744.png)
 
 ## **使用 Spring Boot 的主要优点**
 

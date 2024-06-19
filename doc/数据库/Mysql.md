@@ -454,7 +454,7 @@ jdk1.7中的HashMap本来是数组+链表的形式，链表由于其查找慢的
 
 在mysql5.6之后引入了一个概念，也就是并行复制。
 
-<img src="./images/并行控制.png" style="zoom:60%;" />
+![并行控制.png](./images/并行控制.png)
 
 ##### 多线程slave（MTS）问题
 

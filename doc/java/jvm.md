@@ -4,7 +4,7 @@
 # [**:house:**](../../README.html)
 
 # 一、JVM的体系结构
-<img src="assets/image-20240618145427762.png" alt="image-20240618145427762" style="zoom:50%;" />
+![image-20240618145427762.png](assets/image-20240618145427762.png)
 
 ### 1.1 类加载器
 
@@ -90,7 +90,7 @@ public abstract class ClassLoader {
 
   
 
-<img src="./images/类加载器.png" style="zoom:30%;" />
+![类加载器.png](./images/类加载器.png)
 
 
 
@@ -122,7 +122,7 @@ public abstract class ClassLoader {
    >
    > 加载阶段与连接阶段的部分动作(如一部分字节码文件格式验证动作)是交叉进行的，加载阶段尚未结束，连接阶段可能就已经开始了。
    >
-   > <img src="assets/image-20240618163649091.png" alt="image-20240618163649091" style="zoom:50%;" />
+   > ![image-20240618163649091.png](assets/image-20240618163649091.png)
 2. **连接**
 
    - **验证**:  **确保加载的类符合JVM规范和安全**，保证被校验类的方法在运行时不会做出危害虚拟机的事件；
@@ -131,7 +131,7 @@ public abstract class ClassLoader {
      - 元数据验证（字节码语义检查）
      - 字节码验证（程序语义检查）
      - 符号引用验证（类的正确性检查）
-     > <img src="assets/image-20240618161521174.png" alt="image-20240618161521174" style="zoom: 33%;" />
+     > ![image-20240618161521174.png](assets/image-20240618161521174.png)
      >
      > 文件格式验证这一阶段是基于该类的二进制字节流进行的，主要目的是保证输入的字节流能正确地解析并存储于方法区之内，格式上符合描述一个 Java 类型信息的要求。除了这一阶段之外，其余三个验证阶段都是基于方法区的存储结构上进行的，不会再直接读取、操作字节流了。
      >
@@ -191,9 +191,9 @@ public abstract class ClassLoader {
    所以，在 JVM 生命周期内，由 jvm 自带的类加载器加载的类是不会被卸载的。但是由我们自定义的类加载器加载的类是可能被卸载的。
 ### 1.2 运行时数据区
 
-<img src="./images/JVM运行时数据区域.png" style="zoom:67%;" />
+![JVM运行时数据区域.png](./images/JVM运行时数据区域.png)
 
-<img src="./images/Java运行时数据区域JDK1.8.png" style="zoom: 67%;" />
+![Java运行时数据区域JDK1.8.png](./images/Java运行时数据区域JDK1.8.png)
 
 
 
@@ -268,7 +268,7 @@ public abstract class ClassLoader {
   - 永久代会为 GC 带来不必要的复杂度，并且回收效率偏低。
 
 
-<img src="./images/方法区.png" style="zoom: 50%;" />
+![方法区.png](./images/方法区.png)
 
 ##### 运行时常量池
 - **是方法区的一部分**
@@ -297,13 +297,13 @@ public class Test {
 
 然后使用 javap -v Test.class 命令反编译查看结果。
 
-<img src="assets/image-20240618154316038.png" alt="image-20240618154316038" style="zoom:50%;" />
+![image-20240618154316038.png](assets/image-20240618154316038.png)
 
 每条指令都会对应常量池表中一个地址，常量池表中的地址可能对应着一个类名、方法名、参数类型等信息
 
 
 
-<img src="assets/image-20240618154131514.png" alt="image-20240618154131514" style="zoom:50%;" />
+![image-20240618154131514.png](assets/image-20240618154131514.png)
 
 
 
@@ -344,11 +344,11 @@ public class Test {
 
 **不使用直接内存**
 
-<img src="./images/文件读写流程.png" style="zoom: 50%;" />
+![文件读写流程.png](./images/文件读写流程.png)
 
 **使用直接内存**
 
-<img src=".\images\使用直接内存.png" style="zoom: 50%;" />
+![.\images\使用直接内存.png](.\images\使用直接内存.png)
 
 直接内存是操作系统和Java代码**都可以访问的一块区域**，无需将代码从系统内存复制到Java堆内存，从而提高了效率.
 
@@ -381,28 +381,28 @@ public class TestFrame{//1
 - 第一行，java虚拟机会先进行类加载，将类中的字节码加到java的虚拟机中，也就是方法区。
 - 类加载完，java虚拟机就会启动一个为main的主线程，并且为这个线程分配一个栈内存，然后线程就交给任务调度器去执行。当cpu为主线程分配了时间片，cpu就开始运行主线程，运行到哪行代码由程序计数器来记录。
 
-<img src="./images/代码1.png" style="zoom: 50%;" />
+![代码1.png](./images/代码1.png)
 
 - 第二行：入口是main方法，则虚拟机会为main方法创建一个栈帧。
 
-<img src="./images/代码2.png" style="zoom: 50%;" />
+![代码2.png](./images/代码2.png)
 
 - 第三行：进入method1方法，也会为method1方法创建一个栈帧。x=10写进栈帧。
 
-<img src="./images/代码3.png" style="zoom: 50%;" />
+![代码3.png](./images/代码3.png)
 
 - 第五行：执行完后y = 11;
 - 第六行：进入method2方法，同时为method2方法创建一个栈帧。
 
-<img src="./images/代码4.png" style="zoom: 50%;" />
+![代码4.png](./images/代码4.png)
 
 - 第九行：在堆中新建一个对象，并将对象的引用n指向对象。
 
-  <img src="./images/代码5.png" style="zoom: 50%;" />
+  ![代码5.png](./images/代码5.png)
 
 - 第10行：返回n,并将m指向object对象。
 
-<img src="./images/代码6.png" style="zoom:60%;" />
+![代码6.png](./images/代码6.png)
 
 - 之后释放method2的栈帧内存。返回到method1,之后method1执行完，其栈帧也要释放掉。
 
@@ -473,11 +473,11 @@ public class TestFrame{//1
 
 1. **句柄**： 如果使用句柄的化，java堆中会划分出一块内存来作为句柄池，reference中存储的就是对象的句柄地址，而句柄中包含了对象实例数据域类型数据各自的具体地址信息。
 
-   <img src=".\images\对象的访问定位-使用句柄.png" style="zoom:50%;" />
+   ![.\images\对象的访问定位-使用句柄.png](.\images\对象的访问定位-使用句柄.png)
 
 2. **直接指针**：如果使用直接指针访问，那么java堆对象的布局就必须考虑如何放置访问类型数据的相关信息，而reference中存储的直接就是对象的地址。
 
-<img src=".\images\对象的访问定位-直接指针.png" style="zoom:50%;" />
+![.\images\对象的访问定位-直接指针.png](.\images\对象的访问定位-直接指针.png)
 
 # 三、垃圾回收器(GC)
 #### 3.1 如何判断对象已经死亡？
@@ -518,7 +518,7 @@ public class TestFrame{//1
 >
 > 在这里list 强引用SoftReference对象，然后通过SoftReference间接引用byte数组。
 
-<img src="./images/五种引用.png" style="zoom:50%;" />
+![五种引用.png](./images/五种引用.png)
 
 1. **强引用**：**对于强引用，垃圾回收器绝对不会回收它(即使内存不足)。只有GC Root都不引用该对象时，才会回收强引用对象。**
 
@@ -667,7 +667,7 @@ public class TestFrame{//1
 
 ##### 3.4.6 CMS 收集器
 
-<img src="./images/CMS收集器.png" style="zoom:67%;" />
+![CMS收集器.png](./images/CMS收集器.png)
 
 - **CMS（Concurrent Mark Sweep）收集器是一种以获取最短回收停顿时间为目标的收集器。它非常符合在注重用户体验的应用上使用。**
 - **CMS（Concurrent Mark Sweep）收集器是 HotSpot 虚拟机第一款真正意义上的并发收集器，它第一次实现了让垃圾收集线程与用户线程（基本上）同时工作。**
@@ -893,7 +893,7 @@ System.out.println(str4 == str5);//false
 
 Java 虚拟机所管理的内存中最大的一块，Java 堆是所有线程共享的一块内存区域，在虚拟机启动时创建。**此内存区域的唯一目的就是存放对象实例，几乎所有的对象实例以及数组都在这里分配内存。**
 
-<img src="assets/image-20240618164542237.png" alt="image-20240618164542237" style="zoom:50%;" />
+![image-20240618164542237.png](assets/image-20240618164542237.png)
 
 - **显式指定堆内存`–Xms`和`-Xmx`**
 

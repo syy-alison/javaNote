@@ -12,17 +12,17 @@ Spring 最核心的思想就是不重新造轮子，开箱即用，提高开发�
 
 **Spring4.x 版本**：
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616202613014.png" alt="image-20240616202613014" style="zoom:33%;" />
+![image-20240616202613014.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616202613014.png)
 
 **Spring5.x 版本**：
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616202626572.png" alt="image-20240616202626572" style="zoom: 33%;" />
+![image-20240616202626572.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616202626572.png)
 
 Spring5.x 版本中 Web 模块的 Portlet 组件已经被废弃掉，同时增加了用于异步响应式处理的 WebFlux 组件。
 
 Spring 各个模块的依赖关系如下：
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616202701308.png" alt="image-20240616202701308" style="zoom: 33%;" />
+![image-20240616202701308.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616202701308.png)
 
 #### Core Container
 
@@ -110,15 +110,15 @@ IoC 的思想就是两方之间不互相依赖，由第三方容器来管理相�
 
 在没有使用 IoC 思想的情况下，Service 层想要使用 Dao 层的具体实现的话，需要通过 new 关键字在`UserServiceImpl` 中手动 new 出 `IUserDao` 的具体实现类 `UserDaoImpl`（不能直接 new 接口类）。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616210754325.png" alt="image-20240616210754325" style="zoom:50%;" />
+![image-20240616210754325.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616210754325.png)
 
 开发过程中突然接到一个新的需求，针对`IUserDao` 接口开发出另一个具体实现类。因为 Server 层依赖了`IUserDao`的具体实现，所以我们需要修改`UserServiceImpl`中 new 的对象。如果只有一个类引用了`IUserDao`的具体实现，可能觉得还好，修改起来也不是很费力气，但是如果有许许多多的地方都引用了`IUserDao`的具体实现的话，一旦需要更换`IUserDao` 的实现方式，那修改起来将会非常的头疼。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616210921488.png" alt="image-20240616210921488" style="zoom:50%;" />
+![image-20240616210921488.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616210921488.png)
 
 使用 IoC 的思想，我们将对象的控制权（创建、管理）交有 IoC 容器去管理，我们在使用的时候直接向 IoC 容器 “要” 就可以了
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616210934246.png" alt="image-20240616210934246" style="zoom:50%;" />
+![image-20240616210934246.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616210934246.png)
 
 ### IoC 和 DI 有区别吗？
 
@@ -495,7 +495,7 @@ MVC 是一种设计模式，Spring MVC 是一款很优秀的 MVC 框架。Spring
 
 ### SpringMVC 工作原理了解吗?
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616214329072.png" alt="image-20240616214329072" style="zoom:50%;" />
+![image-20240616214329072.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616214329072.png)
 
 **流程说明（重要）：**
 

@@ -32,14 +32,14 @@
 
 ## Java SE vs Java EE
 
-<img src="assets/image-20240616142854086.png" alt="image-20240616142854086" style="zoom: 33%;" />
+![image-20240616142854086.png](assets/image-20240616142854086.png)
 
 - JVM
 
   - Java 虚拟机（Java Virtual Machine, JVM）是运行 Java 字节码的虚拟机。JVM 有针对不同系统的特定实现（Windows，Linux，macOS），目的是使用相同的字节码，它们都会给出相同的结果。字节码和不同系统的 JVM 实现是 Java 语言“一次编译，随处可以运行”的关键所在。
   - **JVM 并不是只有一种！只要满足 JVM 规范，每个公司、组织或者个人都可以开发自己的专属 JVM。** 也就是说我们平时接触到的 HotSpot VM 仅仅是是 JVM 规范的一种实现而已。除了我们平时最常用的 HotSpot VM 外，还有 J9 VM、Zing VM、JRockit VM 等 JVM 
 
-  <img src="assets/image-20240616142411715.png" alt="image-20240616142411715" style="zoom:33%;" />
+  ![image-20240616142411715.png](assets/image-20240616142411715.png)
 
 - JRE（Java Runtime Environment） 是 Java 运行时环境。它是运行已编译 Java 程序所需的所有内容的集合，主要包括 Java 虚拟机（JVM）、Java 基础类库（Class Library）。
 
@@ -63,7 +63,7 @@
 
 **Java 程序从源代码到运行的过程如下图所示**：
 
-<img src="assets/image-20240616143507187.png" alt="image-20240616143507187" style="zoom:33%;" />
+![image-20240616143507187.png](assets/image-20240616143507187.png)
 
 我们需要格外注意的是 `.class->机器码` 这一步。在这一步 JVM 类加载器首先加载字节码文件，然后通过解释器逐行解释执行，这种方式的执行速度会相对比较慢。而且，有些方法和代码块是经常需要被调用的(也就是所谓的热点代码)，所以后面引进了 **JIT（Just in Time Compilation）** 编译器，而 JIT 属于运行时编译。当 JIT 编译器完成第一次编译后，其会将字节码对应的机器码保存下来，下次可以直接使用。而我们知道，机器码的运行效率肯定是高于 Java 解释器的。这也解释了我们为什么经常会说 **Java 是编译与解释共存的语言** 。
 
@@ -131,7 +131,7 @@ Java 语言既具有编译型语言的特征，也具有解释型语言的特征
 
 3. 占内存大小:字符常量只占2个字符，字符串常量占若干个字符。
 
-  <img src="./images/数据基本类型.jpg" alt="数据基本类型" style="zoom:70%;" />
+  ![数据基本类型.jpg](./images/数据基本类型.jpg)
 
 ## 标识符和关键字
 - 标识符：编程时需要大量的为程序，类，变量，方法等取名字，于是就有了标识符。
@@ -364,7 +364,7 @@ private static class IntegerCache {
 
 ## 多态
 
-<img src="assets/image-20240616152344335.png" alt="image-20240616152344335" style="zoom:40%;" />
+![image-20240616152344335.png](assets/image-20240616152344335.png)
 
 - **多态性是指允许不同的对象对同一消息作出的不同响应。**
 
@@ -424,7 +424,7 @@ private static class IntegerCache {
 
 **深拷贝**：深拷贝会完全复制整个对象，包括这个对象所包含的内部对象。
 
-<img src="assets/image-20240616152827670.png" alt="image-20240616152827670" style="zoom:30%;" />
+![image-20240616152827670.png](assets/image-20240616152827670.png)
 
 ## Object
 
@@ -1214,7 +1214,7 @@ new Thread(() -> {
 
 # 十、异常
 
-<img src="./images/Java异常类层次结构图.png" style="zoom:80%;" />
+![Java异常类层次结构图.png](./images/Java异常类层次结构图.png)
 
 ## 分类
 
@@ -1425,7 +1425,7 @@ public class Test {
    > 对于写请求：等待系统调用的完整请求数据，并写入内核缓冲区；
    > 对于读请求：等待系统调用的完整请求数据；（若请求数据不存在于内核缓冲区）则将外围设备的数据读入到内核缓冲区。
 
-   <img src="./images/IO过程.png" style="zoom:80%;" />
+   ![IO过程.png](./images/IO过程.png)
 
 ## AIO
 
@@ -1461,7 +1461,7 @@ NIO主要有**三个核心部分组成**：
 - **Channel管道**
 - **Selector选择器**
 
-<img src="./images/NIO模型.png" style="zoom:75%;" />
+![NIO模型.png](./images/NIO模型.png)
 
 **通道与缓冲区**
 
@@ -2449,7 +2449,7 @@ aliSmsService.send("java");
 
 ### JDK 动态代理和 CGLIB 动态代理对比
 
-<img src="assets/image-20240616181057713.png" alt="image-20240616181057713" style="zoom:50%;" />
+![image-20240616181057713.png](assets/image-20240616181057713.png)
 
 **JDK 动态代理只能代理实现了接口的类或者直接代理接口，而 CGLIB 可以代理未实现任何接口的类。** 另外， CGLIB 动态代理是通过生成一个被代理类的子类来拦截被代理类的方法调用，因此不能代理声明为 final 类型的类和方法。
 
@@ -2526,24 +2526,24 @@ aliSmsService.send("java");
 
   因此BIO带来了一个问题：如果内核数据需要耗时很久才能准备好，那么用户进程将被阻塞，浪费性能。为了提升应用的性能，虽然可以通过多线程来提升性能，但线程的创建依然会借助系统调用，同时多线程会导致频繁的线程上下文的切换，同样会影响性能。所以要想解决BIO带来的问题，我们就得看到问题的本质，那就是**阻塞**二字。
 
-  <img src="./images/BIO.png" style="zoom: 80%;" />
+  ![BIO.png](./images/BIO.png)
 2. **同步非阻塞模型**
 - 应用程序会一直发起read调用，等待数据从内核拷贝到用户空间的这段时间内，线程依然是阻塞的，直到在内核把数据拷贝到用户空间。
 - 通过轮询操作避免一直阻塞。
 - 缺点，非阻塞IO虽然相对于阻塞IO大幅提升了性能，但依旧不是完美的解决方案，其依然存在性能问题，**也就是频繁的轮询导致频繁的系统调用，会耗费大量的CPU资源。**比如当并发很高时，假设有1000个并发，那么单位时间循环内将会有1000次系统调用去轮询执行结果，而实际上可能只有2个请求结果执行完毕，这就会有998次无效的系统调用，造成严重的性能浪费。有问题就要解决，那**NIO问题的本质就是频繁轮询导致的无效系统调用**。
 
-<img src="./images/同步非阻塞.png" alt="同步非阻塞" style="zoom:80%;" />
+![同步非阻塞.png](./images/同步非阻塞.png)
 
 3. **I/O多路复用**
 - 线程首先发起select调用，询问内核数据是否准备就绪，等内核把数据准备好了，用户线程再发起read调用。
 - 通过减少无效的系统调用，减少了对CPU资源的消耗。
 
-<img src="./images/IO多路复用.png" alt="IO多路复用" style="zoom:50%;" />
+![IO多路复用.png](./images/IO多路复用.png)
 
 4. **异步IO(AIO)**
 - 应用操作之后会直接返回，不会堵塞在那里，当后台处理完成，操作系统会通知相应的线程进程后续的处理。
 
-<img src="./images/异步IO.png" alt="异步IO" style="zoom:50%;" />
+![异步IO.png](./images/异步IO.png)
 
 5. **信号驱动 I/O**
 
@@ -2551,7 +2551,7 @@ aliSmsService.send("java");
 
 ## java中的IO模型
 
-<img src="./images/IO.png" alt="javaIO" style="zoom:50%;" />
+![IO.png](./images/IO.png)
 
 1.**同步阻塞模型(BIO)**
 2.**NIO(Non-blocking/New I/O)**
@@ -2559,7 +2559,7 @@ aliSmsService.send("java");
 - 它支持面向缓冲的，基于通道的 I/O 操作方法,对于高负载、高并发的（网络）应用，应使用 NIO.
 -  Java 中的 NIO 可以看作是 I/O 多路复用模型。也有很多人认为，Java 中的 NIO 属于同步非阻塞 IO 模型。
 
-<img src="./images/NIO.png" alt="NIO" style="zoom:50%;" />
+![NIO.png](./images/NIO.png)
 
 
 

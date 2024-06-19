@@ -187,28 +187,28 @@ public class TestFrame{//1
 - 第一行，java虚拟机会先进行类加载，将类中的字节码加到java的虚拟机中，也就是方法区。
 - 类加载完，java虚拟机就会启动一个为main的主线程，并且为这个线程分配一个栈内存，然后线程就交给任务调度器去执行。当cpu为主线程分配了时间片，cpu就开始运行主线程，运行到哪行代码由程序计数器来记录。
 
-<img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码1.png" style="zoom: 50%;" />
+![代码1.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码1.png)
 
 - 第二行：入口是main方法，则虚拟机会为main方法创建一个栈帧。
 
-<img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码2.png" style="zoom: 50%;" />
+![代码2.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码2.png)
 
 - 第三行：进入method1方法，也会为method1方法创建一个栈帧。x=10写进栈帧。
 
-<img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码3.png" style="zoom: 50%;" />
+![代码3.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码3.png)
 
 - 第五行：执行完后y = 11;
 - 第六行：进入method2方法，同时为method2方法创建一个栈帧。
 
-<img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码4.png" style="zoom: 50%;" />
+![代码4.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码4.png)
 
 - 第九行：在堆中新建一个对象，并将对象的引用n指向对象。
 
-  <img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码5.png" style="zoom: 50%;" />
+  ![代码5.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码5.png)
 
 - 第10行：返回n,并将m指向object对象。
 
-<img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码6.png" style="zoom:60%;" />
+![代码6.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码6.png)
 
 - 之后释放method2的栈帧内存。返回到method1,之后method1执行完，其栈帧也要释放掉。
 
@@ -505,7 +505,7 @@ monitor.setDaemon(true);
 
 ### 2.7.1 操作系统层面(五种状态)
 
-<img src="./images/操作系统层面.png" style="zoom:60%;" />
+![操作系统层面.png](./images/操作系统层面.png)
 
 - 【**初始状态**】仅是在语言层面创建了线程对象，还未与操作系统线程关联（例如new了一个线程对象，但是没调用start方法）
 - 【**可运行状态**】（就绪状态）指该线程已经被创建（与操作系统线程关联），可以由 CPU 调度执行
@@ -519,7 +519,7 @@ monitor.setDaemon(true);
 
 ### 2.7.2 JAVA API层面(六种状态)
 
-<img src="./images/六种状态.png" style="zoom:60%;" />
+![六种状态.png](./images/六种状态.png)
 
 - **NEW** 线程刚被创建，但是还没有调用 start() 方法
 - **RUNNABLE** 当调用了 start() 方法之后，注意，Java API 层面的 RUNNABLE 状态涵盖了操作系统层面的 【可运行状态】、【运行状态】和【阻塞状态】（由于 BIO 导致的线程阻塞，在 Java 里无法区分，仍然认为 是可运行）
@@ -790,7 +790,7 @@ if(table.get("key") == null){//1
 
 #### java对象的布局
 
-<img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/对象在内存中的布局.png" style="zoom: 80%;" />
+![对象在内存中的布局.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/对象在内存中的布局.png)
 
 - 对象头：当一个线程尝试访问sychronzied修饰的代码块时，它首先要获得锁，这个锁时存在锁的对象头中。
 - 实例数据：类中定义的成员变量。
@@ -798,7 +798,7 @@ if(table.get("key") == null){//1
 
 64位虚拟机的mark word:
 
-<img src="./images/对象头.png" style="zoom: 67%;" />
+![对象头.png](./images/对象头.png)
 
 ### 3.2.5 偏向锁
 
@@ -848,15 +848,15 @@ if(table.get("key") == null){//1
 
 - 判断当前对象是否处于无锁状态(hashcode,0,01)，如果是，创建**锁记录**（Lock Record）对象，每个线程的栈帧都会包含一个锁记录对象，内部可以存储锁定对象的mark word（不再一开始就使用Monitor）。
 
-<img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/轻量级锁.png" style="zoom:75%;" />
+![轻量级锁.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/轻量级锁.png)
 
 - 让锁记录中的Object reference指向锁对象（Object），并尝试用cas去替换Object中的mark word，将此mark word放入lock record中保存.
 
-<img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/轻量级锁1.png" style="zoom:75%;" />
+![轻量级锁1.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/轻量级锁1.png)
 
 - 如果cas替换成功，则将Object的对象头替换为**锁记录的地址**和**状态 00（轻量级锁状态）**，并由该线程给对象加锁.
 
-<img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/轻量级锁2.png" style="zoom:75%;" />
+![轻量级锁2.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/轻量级锁2.png)
 
 - 如果失败则判断当前对象的Mark Word是否指向当前线程的栈帧.
   - 如果是则表示当前线程已经持有当前对象的锁，则进入sychronized锁重入，再加一条Lock Record作为重入的计数，但是此刻锁记录是null. 
@@ -875,7 +875,7 @@ if(table.get("key") == null){//1
 
 每个java对象都可以关联一个操作系统的monitor对象，如果使用sychronized给对象上锁(重量级)之后，该对象头的mark word中就被设置指向monitor对象的指针。
 
-<img src="./images/Monitor.png" style="zoom: 50%;" />
+![Monitor.png](./images/Monitor.png)
 
 - 当线程执行到临界区代码时，如果使用了synchronized，会先查询synchronized中所指定的对象(obj)**是否绑定了Monitor**。
 
@@ -902,7 +902,7 @@ JVM会探测到一连串细小的操作都使用同一个对象加锁，将同�
 
 ### 3.3.1 原理
 
-<img src="./images/wait_notify.png" style="zoom: 50%;" />
+![wait_notify.png](./images/wait_notify.png)
 
 - 锁对象调用wait方法（`obj.wait()`），就会使当前线程进入`WaitSet`中，变为WAITING状态。
 - 处于BLOCKED和WAITING状态的线程都为阻塞状态，CPU都不会分给他们时间片。但是有所区别：
@@ -1133,7 +1133,7 @@ public final synchronized void join(long millis)
 - 消息队列是有容量限制的，满时不会再加入数据，空时不会再消耗数据
 - JDK中各种阻塞队列，采用的就是这种模式。
 
-<img src="./images/生产者消费者.png" style="zoom:60%;" />
+![生产者消费者.png](./images/生产者消费者.png)
 
 ## 3.6 park()  & unpark()
 
@@ -1238,15 +1238,15 @@ class BigRoom {
 
 - **`jconsole`检测死锁**
 
-<img src="./images/死锁检测.png" style="zoom:75%;" />
+![死锁检测.png](./images/死锁检测.png)
 
-<img src="./images/死锁检测2.png" style="zoom:75%;" />
+![死锁检测2.png](./images/死锁检测2.png)
 
 
 
 ### 3.8.3 哲学家就餐问题
 
-<img src="./images/哲学家就餐.png" style="zoom:50%;" />
+![哲学家就餐.png](./images/哲学家就餐.png)
 
 ### 3.8.4. 活锁
 
@@ -1651,15 +1651,15 @@ static Boolean run = true;
 
 - 初始状态， t 线程刚开始从**主内存**读取了 run 的值到**工作内存**。
 
-<img src="./images/可见性1.png" style="zoom: 50%;" />
+![可见性1.png](./images/可见性1.png)
 
 - 因为 t 线程要频繁从主内存中读取 run 的值，JIT 编译器会将 run 的值**缓存至自己工作内存**中的高速缓存中， 减少对主存中 run 的访问，提高效率.
 
-<img src="./images/可见性2.png" style="zoom: 50%;" />
+![可见性2.png](./images/可见性2.png)
 
 - 1 秒之后，main 线程修改了 run 的值，并同步至主存，而 t 是从自己工作内存中的高速缓存中读取这个变量 的值，结果永远是**旧值**
 
-<img src="./images/可见性3.png" style="zoom: 50%;" />
+![可见性3.png](./images/可见性3.png)
 
 **解决方法**
 
@@ -1889,7 +1889,7 @@ j=...
 
 - 事实上，现代处理器会设计为一个时钟周期完成一条执行时间长的 CPU 指令。为什么这么做呢？可以想到指令还可以再划分成一个个更小的阶段，例如，每条指令都可以分为： **取指令 - 指令译码 - 执行指令 - 内存访问 - 数据写回** 这5 个阶段
 
-<img src="D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/指令重排优化.png" style="zoom:75%;" />
+![指令重排优化.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/指令重排优化.png)
 
 - 在不改变程序结果的前提下，这些指令的各个阶段可以通过**重排序**和**组合**来实现**指令级并行**
 - 指令重排的前提是，重排指令**不能影响结果**，例如
@@ -1909,7 +1909,7 @@ int b = a - 5;
 
 现代 CPU 支持多级**指令流水线**，例如支持**同时**执行 **取指令 - 指令译码 - 执行指令 - 内存访问 - 数据写回** 的处理器，就可以称之为五级指令流水线。这时 CPU 可以在一个时钟周期内，同时运行五条指令的不同阶段（相当于一 条执行时间长的复杂指令），IPC = 1，本质上，流水线技术并不能缩短单条指令的执行时间，但它变相地提高了指令地**吞吐率**。
 
-<img src="images/流水线处理器.png" style="zoom:75%;" />
+![流水线处理器.png](images/流水线处理器.png)
 
 **在多线程环境下，指令重排序可能导致出现意料之外的结果**
 
@@ -1931,7 +1931,7 @@ int b = a - 5;
   - 写屏障只能保证同一个线程之后的读能够读到最新的结果，但是不能保证其他线程的读取操作是在该线程写入之后的。
   - 而有序性的保证也只是保证了本线程内相关代码不被重排序。
 
-<img src="./images/volatile指令交错.png" style="zoom:60%;" />
+![volatile指令交错.png](./images/volatile指令交错.png)
 
 ```java
 //线程1执行此方法
@@ -1989,7 +1989,7 @@ public final class Singleton{
 
 **但是在多线程环境下，上面的代码是有问题的，`getInstance()`的字节码如下**：
 
-<img src="./images/单例字节码.png" style="zoom:60%;" />
+![单例字节码.png](./images/单例字节码.png)
 
 对于` INSTANCE = new Singleton();`这行代码，对应的字节码为：
 
@@ -2000,7 +2000,7 @@ public final class Singleton{
 
 也许jvm会进行优化：先执行17，20，24,最后执行21，由于代码中第一个`if(INSTANCE == null)`并没有加`synchronized`所以其他线程可以执行，当一个线程执行17，20，24后，单例并不为空，所以其他线程有可能拿到一个没有执行构造方法的单例，也就是没有初始化完毕的单例。
 
-<img src="./images/单例指令重排.png" style="zoom:60%;" />
+![单例指令重排.png](./images/单例指令重排.png)
 
 - `synchronized`能保证有序性，但是并不能阻止代码重排序。
 
@@ -2031,7 +2031,7 @@ public final class Singleton{
 }
 ```
 
-<img src="./images/单例模式问题解决.png" style="zoom:60%;" />
+![单例模式问题解决.png](./images/单例模式问题解决.png)
 
 ## 4.5 线程安全单例
 
@@ -2539,16 +2539,16 @@ static final class Cell{
 
 从cpu缓存说起
 
-<img src="./images/longadder原理.png" style="zoom:60%;" />
+![longadder原理.png](./images/longadder原理.png)
 
-<img src="./images/访问时间比较.png" style="zoom:60%;" />
+![访问时间比较.png](./images/访问时间比较.png)
 
 因为 CPU 与 内存的速度差异很大，需要靠预读数据至**缓存**来提升效率。
 而缓存以**缓存行**为单位，每个缓存行对应着一块内存，一般是 **64 byte**（8 个 long）
 缓存的加入会造成数据副本的产生，即同一份数据会缓存在不同核心的缓存行中
 CPU 要保证数据的**一致性**，如果某个 CPU 核心**更改**了数据，其它 CPU 核心对应的整个缓存行必须**失效**
 
-<img src="./images/longadder缓存行.png" style="zoom:75%;" />
+![longadder缓存行.png](./images/longadder缓存行.png)
 
 因为 Cell 是数组形式，在内存中是连续存储的，一个 Cell 为 24 字节（16 字节的对象头和 8 字节的 value），因 此缓存行可以存下 2 个的 Cell 对象。这样问题来了：
 
@@ -2561,7 +2561,7 @@ CPU 要保证数据的**一致性**，如果某个 CPU 核心**更改**了数据
 
 `@sun.misc.Contended` 用来解决这个问题，它的原理是在使用此注解的对象或字段的**前后各增加 128 字节大小的 padding**（空白），从而让 CPU 将对象预读至缓存时**占用不同的缓存行**，这样，不会造成对方缓存行的失效.
 
-<img src="./images/longeradder缓存解决.png" style="zoom:75%;" />
+![longeradder缓存解决.png](./images/longeradder缓存解决.png)
 
 **累加器源码**
 
@@ -2761,7 +2761,7 @@ public class TestFinal{
 
 字节码；
 
-<img src="./images/fnal字节码.png" style="zoom:67%;" />
+![fnal字节码.png](./images/fnal字节码.png)
 
 发现final变量的赋值也会通过putfield指令来完成，同时在这条指令之后也会加入写屏障，保证其他线程读到它的值不会出现伪0的情况。
 
