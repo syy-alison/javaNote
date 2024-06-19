@@ -117,7 +117,7 @@ Git 有三种状态，你的文件可能处于其中之一：
 ### 推送改动到远程仓库
 
 - 如果你还没有克隆现有仓库，并欲将你的仓库连接到某个远程服务器，你可以使用如下命令添加：`git remote add origin <server>` ,比如我们要让本地的一个仓库和 GitHub 上创建的一个仓库关联可以这样`git remote add origin https://github.com/Snailclimb/test.git`
-- 关联后，使用命令`git push -u origin master`第一次推送master分支的所有内容；此后，每次本地提交后，只要有必要，就可以使用命令m推送最新修改
+- 关联后，使用命令`git push -u origin master`第一次推送master分支的所有内容；此后，每次本地提交后，只要有必要，就可以使用命令`git push origin master`推送最新修改
 
 ### 远程仓库的移除与重命名
 
