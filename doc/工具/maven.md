@@ -411,7 +411,7 @@ Maven 能够基于 `pom.xml` 所包含的信息，自动生成一个友好的站
 
 这就好办了，我们只需要关注**绑定了插件目标**的阶段就好了，Maven 针对不同的打包格式，提供了不同的**默认插件目标绑定规则**，以打包成`jar`来举例：
 
-![image-20240612100954687](/Users/yuyingsi/files/资料/Note/doc/工具/assets/image-20240612100954687.png)
+![image-20240612100954687](assets/image-20240612100954687.png)
 
 上图就是我们日常工作中常用的阶段，相比上面那张图就简单多了，接下来一一解释一下这些阶段的含义：
 
@@ -491,7 +491,7 @@ mvn clean install -D maven.test.skip=true
 </build>
 ```
 
-![image-20240612102031695](/Users/yuyingsi/files/资料/Note/doc/工具/assets/image-20240612102031695.png)
+![image-20240612102031695](assets/image-20240612102031695.png)
 
 这里在`install`这个阶段加入了生成源码的插件目标，也就是说在`install`阶段上有了两个插件目标，从执行结果来看，两个插件目标都被依次执行了。这涉及到绑定插件目标的另一个特性：**同一个阶段中可以绑定多个插件目标，在这个阶段中，会按照POM中定义的顺序执行**。
 
@@ -514,7 +514,7 @@ Maven 自带的maven-jar-plugin插件不具备这种能力，于是需要引入S
 
 运行 `mvn clean package` 查看运行结果，可以看到执行了`repackage`这个插件目标：
 
-![image-20240612102157541](/Users/yuyingsi/files/资料/Note/doc/工具/assets/image-20240612102157541.png)
+![image-20240612102157541](assets/image-20240612102157541.png)
 
 这里有个疑问，为什么这个插件不需要指定<version>以及<executions>呢？
 
@@ -531,12 +531,12 @@ Maven 自带的maven-jar-plugin插件不具备这种能力，于是需要引入S
 
 再看一下父级pom中的定义：
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/工具/assets/image-20240612102246263.png" alt="image-20240612102246263" style="zoom:50%;" />
+<img src="assets/image-20240612102246263.png" alt="image-20240612102246263" style="zoom:50%;" />
 
 这里没有指定phase，插件目标是怎么绑定到package阶段的呢？
 
 这是因为在编写插件的时候，在插件的配置文件中就已经指定了repackage这个插件目标绑定在package这个阶段上了，在spring-boot-maven-plugin-2.6.7.jar 这个包中，我们可以找到一个plugin.xml的配置文件，打开后可以查看到如下的内容：
-<img src="/Users/yuyingsi/files/资料/Note/doc/工具/assets/image-20240612102351379.png" alt="image-20240612102351379" style="zoom: 50%;" />
+<img src="assets/image-20240612102351379.png" alt="image-20240612102351379" style="zoom: 50%;" />
 
 # Maven 多模块管理
 
@@ -553,7 +553,7 @@ Maven 自带的maven-jar-plugin插件不具备这种能力，于是需要引入S
 
 如下图所示，Dubbo 项目就被分成了多个子模块比如 dubbo-common（公共逻辑模块）、dubbo-remoting（远程通讯模块）、dubbo-rpc（远程调用模块）。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/工具/assets/image-20240612095019468.png" alt="image-20240612095019468" style="zoom:50%;" />
+<img src="assets/image-20240612095019468.png" alt="image-20240612095019468" style="zoom:50%;" />
 
 # 参考
 

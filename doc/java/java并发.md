@@ -64,7 +64,7 @@
 - 每个栈由多个栈帧（Frame）组成，对应着每次方法调用时所占用的内存 
 - 每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法 
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/java相关/assets/image-20240617144108850.png" alt="image-20240617144108850" style="zoom:50%;" />
+<img src="assets/image-20240617144108850.png" alt="image-20240617144108850" style="zoom:50%;" />
 
 ## 线程上下文切换
 
@@ -82,7 +82,7 @@
 - 状态包括程序计数器、虚拟机栈中每个栈帧的信息，如局部变量、操作数栈、返回地址等 
 - 上下文 频繁发生会影响性能
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/java相关/assets/image-20240617144212928.png" alt="image-20240617144212928" style="zoom:33%;" />
+<img src="assets/image-20240617144212928.png" alt="image-20240617144212928" style="zoom:33%;" />
 
 从main线程切换到T1线程，会保存main线程的状态
 
@@ -173,7 +173,7 @@ t1.start();
 
 ## 常用方法
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/java相关/assets/image-20240617144308911.png" alt="image-20240617144308911" style="zoom:50%;" />
+<img src="assets/image-20240617144308911.png" alt="image-20240617144308911" style="zoom:50%;" />
 
 ### start() 与 run()
 
@@ -1791,7 +1791,7 @@ https://blog.csdn.net/u010445301/article/details/125590758
 
 > CLH(Craig,Landin,and Hagersten)队列是一个虚拟的双向队列（虚拟的双向队列即不存在队列实例，仅存在结点之间的关联关系）。AQS 是将每条请求共享资源的线程封装成一个 CLH 锁队列的一个结点（Node）来实现锁的分配。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/java相关/assets/image-20240617173250683.png" alt="image-20240617173250683" style="zoom:50%;" />
+<img src="assets/image-20240617173250683.png" alt="image-20240617173250683" style="zoom:50%;" />
 
 AQS 使用一个 int 成员变量来表示同步状态，通过内置的 FIFO 队列来完成获取资源线程的排队工作。AQS 使用 CAS 对该同步状态进行原子操作实现对其值的修改。
 

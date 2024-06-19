@@ -8,7 +8,7 @@
 
 消息队列是一种进程间通信或者同一进程的不同线程间的通信方式，主要解决应用耦合，异步消息，流量削峰等问题，实现高性能，高可用，可伸缩和最终一致性架构。是大型分布式系统不可缺少的中间件。消息发布者只管把消息发布到MQ中而不管谁来取，消息使用者只管从MQ中取消息而不管是谁发布的，这样发布者和使用者都不知道对方的存在。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714302901693-80f1a3bd-508f-42f6-9d5e-f5b742a70ba4.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714302901693-80f1a3bd-508f-42f6-9d5e-f5b742a70ba4.png" alt="img" style="zoom:33%;" />
 
 ## 1.2. 使用场景
 
@@ -44,7 +44,7 @@ AMQP 0.10在灵活度增加的同时复杂度也增加了。
 
 
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714304319850-b0796ec0-9afe-4045-81da-0eaa78f9eeee.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714304319850-b0796ec0-9afe-4045-81da-0eaa78f9eeee.png" alt="img" style="zoom:33%;" />
 
 消息被发布者发送给交换机，交换机常常被比喻为邮局或者邮箱，交换机将受到的消息按照路由规则分发到绑定的队列中，最后AMQP代理会将消息投递给订阅了此队列的消费者，或者消费者按需获取。
 
@@ -54,7 +54,7 @@ AMQP 0.10在灵活度增加的同时复杂度也增加了。
 
 MQTT即Message Queue Telemetry Transport,消息队列遥测传输，是IBM开发的一个即时通讯协议，是一种基于轻量级代理的，发布/订阅模式的消息传输协议，运行在TCP协议栈智商，为其提供有序，可靠，双向连接的网络连接保证。该协议支持所有平台，几乎可以把所有联网物品和外部连接其他，被用来当做传感器和致动器的通信协议。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714304708207-71d2d11d-db99-4911-bd9e-b9813cb76cba.png" alt="img" style="zoom: 50%;" />
+<img src="assets/1714304708207-71d2d11d-db99-4911-bd9e-b9813cb76cba.png" alt="img" style="zoom: 50%;" />
 
 **协议特点**：格式简单，占用带宽小，移动端通信，PUSH，嵌入式系统
 
@@ -76,7 +76,7 @@ XMPP（可扩展消息处理现场协议，Extensible Messaging and Presence Pro
 
 RabbitMQ是实现AMQP（0.9.1）协议的消息中间件的一种，由RabbitMQ Technologies Ltd 开发并且提供商业支持的，最终起源于金融系统，服务器端用Erlang语言编写，用于在分布式系统中存储转发消息，在易用性，扩展性，高可用性等方面表现较好。
 
-![img](https://cdn.nlark.com/yuque/0/2024/png/42819892/1714308886541-e929c1fc-0ceb-4dbd-81a3-142a0fd511b4.png)
+![img](assets/1714308886541-e929c1fc-0ceb-4dbd-81a3-142a0fd511b4.png)
 
 **组成元素**
 
@@ -106,19 +106,19 @@ RabbitMQ是实现AMQP（0.9.1）协议的消息中间件的一种，由RabbitMQ 
 Exchange分发消息时，根据类型的不同，分发策略有明显的区别: Direct,Fanout,Topic,Headers。Headers匹配AMQP消息的Header而不是路由键，此外Headers交换机和Direct交换机完全一致，但是性能差很多，目前几乎不用**。**
 
 - DIRECT
-- <img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714310605958-0a9c85d1-d406-4c43-83e5-06a4c0604a17.png" alt="img" style="zoom:33%;" />
+- <img src="assets/1714310605958-0a9c85d1-d406-4c43-83e5-06a4c0604a17.png" alt="img" style="zoom:33%;" />
 
 消息中的路由键如果和Binding中Binding key一致，交换机就将消息发送到对应的队列中，路由键与队列名完全匹配，如果一个队列绑定到交换机要求路由键位news，则只转发Routing key为news的消息，不会转发weather，它是完全匹配，单播的模式。
 
 - FANOUT
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714310663147-e072cb89-88b0-4bdd-b6a4-672bb901805c.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714310663147-e072cb89-88b0-4bdd-b6a4-672bb901805c.png" alt="img" style="zoom:33%;" />
 
 每个发到Fanout类型交换器的消息都会分到所有绑定的队列上去，Fanout交换器不处理路由键，只是简单的将队列绑定到交换机上，每个发送到交换器的消息都会被转发到与该交换器绑定的所有队列上，很想子网光比，每台子网内的主机都获得了一份消息的复制。Fanout类型转发消息是最快的。
 
 - TOPIC
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714311114774-dc6d64b2-8d27-4b62-920f-491e524c053f.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714311114774-dc6d64b2-8d27-4b62-920f-491e524c053f.png" alt="img" style="zoom:33%;" />
 
 交换机通过模式匹配分配消息的路由键属性，将路由键与某个模式进行匹配，此时队列需要绑定到一个模式上，它将路由键个绑定键的字符串切分为单次，这些单次之间用点隔开。
 
@@ -143,7 +143,7 @@ Exchange分发消息时，根据类型的不同，分发策略有明显的区别
 
 RocketMQ是阿里巴巴在2012年开源的分布式消息中间件，目前已经捐赠给Apache软件基金会，并于2017年9月25日称为Apache的顶级项目，以其高性能，低延时和高可靠等特性近年来已经也被越来越多的国内企业使用。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714312463881-b1356c0e-4fbf-4d11-8caa-e906dc491947.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714312463881-b1356c0e-4fbf-4d11-8caa-e906dc491947.png" alt="img" style="zoom:33%;" />
 
 
 
@@ -178,7 +178,7 @@ Kafka是由Apache软件基金会开发的一个开源流处理平台，由Scala�
 
 
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714314863315-7d82c20d-e5dc-4c2a-a43b-a01ec4716e1e.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714314863315-7d82c20d-e5dc-4c2a-a43b-a01ec4716e1e.png" alt="img" style="zoom:33%;" />
 
 
 
@@ -215,7 +215,7 @@ Kafka是由Apache软件基金会开发的一个开源流处理平台，由Scala�
 
 ActiveMQ 是由 Apache 出品的一款开源消息[中间件](https://cloud.tencent.com/product/tdmq?from_column=20065&from=20065)，旨在为应用程序提供高效、可扩展、稳定、安全的企业级消息通信。它的设计目标是提供标准的、面向消息的、多语言的应用集成消息通信中间件。ActiveMQ 实现了 JMS 1.1 并提供了很多附加的特性，比如 JMX 管理、主从管理、消息组通信、消息优先级、延迟接收消息、虚拟接收者、消息持久化、[消息队列](https://cloud.tencent.com/product/cmq?from_column=20065&from=20065)监控等等。它非常快速，支持多种语言的客户端和协议，而且可以非常容易的嵌入到企业的应用环境中，并有许多高级功能。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714354987465-175825f0-ff44-4691-baeb-49508c5a9219.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714354987465-175825f0-ff44-4691-baeb-49508c5a9219.png" alt="img" style="zoom:33%;" />
 
 **基本组件**
 
@@ -229,13 +229,13 @@ ActiveMQ Broker的主要作用是为客户端应用提供一种通信机制，�
 
 1. 点对点模型（Point to Point）
 
-   <img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714355530654-e8f8e8a0-d3cf-4e68-9506-3ab537ccc0f0.png" alt="img." style="zoom:33%;" />
+   <img src="assets/1714355530654-e8f8e8a0-d3cf-4e68-9506-3ab537ccc0f0.png" alt="img." style="zoom:33%;" />
 
 使用队列（Queue）作为消息通信载体，满足生产者和消费者模式，一条消息只能被一个消费者使用，未被消费的消息在队列中保留直到被消费或者超时。
 
 1. 发布订阅模型（Pub/Sub）
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714355464902-05826165-3676-49e4-a8a3-09a3bcd912e0.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714355464902-05826165-3676-49e4-a8a3-09a3bcd912e0.png" alt="img" style="zoom:33%;" />
 
 消息域使用topic作为Destination,发布者向topic发送消息，订阅者注册接受来自topic的消息，发送到topic的任何消息都将自动传递给所有订阅者。
 
@@ -294,7 +294,7 @@ Apache Kafka项目旨在提供统一的，高吞吐量，低延迟的平台来�
 
 一个最基本的架构是生产者发布一个消息到Kafka的一个Topic，该Topic的消息存放于Broker中，消费者订阅这个Topic，然后从Broker中消费消息。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714356969568-5c289b1b-ec93-4d0f-a583-a8d1a11c2212.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714356969568-5c289b1b-ec93-4d0f-a583-a8d1a11c2212.png" alt="img" style="zoom:33%;" />
 
 上面所示的架构分为三部分：Producer,Kafka Broker,Consumer Group,它们分别运行在不同的节点，下面概括介绍一下Kafka的设计思想
 
@@ -309,7 +309,7 @@ Apache Kafka项目旨在提供统一的，高吞吐量，低延迟的平台来�
 
 
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714357744446-beeeda62-bbab-482b-83ed-d92f162993a0.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714357744446-beeeda62-bbab-482b-83ed-d92f162993a0.png" alt="img" style="zoom:33%;" />
 
 
 
@@ -321,7 +321,7 @@ Apache Kafka项目旨在提供统一的，高吞吐量，低延迟的平台来�
 - **Push vs Pull** : 作为一个消息系统，kafka遵循了传统的方式，选择由Producer向Broker Push 消息，一些logging-centric system，比如Facebook的Scribe和Cloudera 的Flume,采用Push模式，事实上，push模式和pull模式各有优劣，Push模式很难适应消费速率不同的消费者，因为消息发送速率是由Broker决定的，Push模式的目的是尽可能以最快速度传递消息，但是这样很容易造成Consumer来不及处理消息，典型的表现就是拒绝服务以及网络拥塞。而pull模式可以根据Consumer的消费能力以适当的速率消费消息，对于Kafka而言，Pull模式更合适。Pull模式可以简化Broker的设计，Consumer可以自主控制消费消息的速率，同时Consumer可以自己控制消费方式（即可批量消费也可逐条消费），同时还能选择不同的提交方式从而实现不同的传输语义。
 - **Topic & Partition：**Topic在逻辑上可以被认为是一个Queue，Kafka的每条消息都必须指定一个Topic，一个Topic中的消息可以分布在集群中的多个Broker中 ，Consumer根据订阅的Topic到对应的Broker上去拉取消息。为了提升整个集群的吞吐量，物理上一个Topic可以分成多个Partition，每个Partition在磁盘上对应一个文件夹，该文件夹存放了这个Partition的所有消息文件和索引文件，假设topic1和topic2两个topic,且分别有13和19个分区，则整个集群会生成32个文件夹。每个消息文件都是一个log entry序列。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714359714420-0f20f81a-70a6-41bb-8f02-e9f2941cda26.png" alt="img" style="zoom:50%;" />
+<img src="assets/1714359714420-0f20f81a-70a6-41bb-8f02-e9f2941cda26.png" alt="img" style="zoom:50%;" />
 
 一条完整的消息包含RECORD、offset以及message size。其中offset用来标识它在Partition中的偏移量，这个offset是逻辑值，而非实际物理偏移值，message size表示消息的大小。与消息对应的还有消息集的概念，消息集中包含一条或者多条消息，消息集不仅是存储于磁盘以及在网络上传输（Produce & Fetch）的基本形式，而且是kafka中压缩的基本单元，详细结构参考上图右侧。下面来具体描述一下消息（RECORD）格式中的各个字段，从crc32开始算起，各个字段的解释如下：
 
@@ -337,17 +337,17 @@ Apache Kafka项目旨在提供统一的，高吞吐量，低延迟的平台来�
 
 
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714360094031-cb71bf96-aa75-4c14-9e02-cf56d77d38b8.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714360094031-cb71bf96-aa75-4c14-9e02-cf56d77d38b8.png" alt="img" style="zoom:33%;" />
 
 这里要注意，因为Kafka读取消息的时间复杂度为O(1)，即与文件大小无关，所以这里删除过期文件与提高Kafka性能无关。另外，Kafka会为每一个Consumer Group保留一些metadata信息（当前消费的消息的位置，即offset）。这个offset由Consumer控制，Consumer会在消费完一条消息后递增该offset。当然，Consumer也可将offset设成一个较小的值，重新消费一些消息。因为offet由Consumer控制，所以Kafka Broker是无状态的，它不需要标记消息是否被消费过，也不需要通过Broker去保证同一个Consumer Group只有一个Consumer能消费某一条消息，因此也就不需要锁机制，从而保证了Kafka的高吞吐率。 下图中，Consumer 1、2分属于不同的Consumer Group，Consumer 2的offset =4，Consumer 1的offset=3，这表明Consumer Group 1中的Consumer下次会从offset = 3 的message读取， Consumer Group 2中的Consumer下次会从offset = 4 的message读取。注意 这里并没有说是Consumer 1 下次会从offset = 3 的message读取，原因是Consumer 1可能会退出Group ，然后Consumer Group 1 进行重新分配分区。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714360305291-d88b9994-d8a6-433b-b02f-49e4e1f424f2.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714360305291-d88b9994-d8a6-433b-b02f-49e4e1f424f2.png" alt="img" style="zoom:33%;" />
 
 ### 2.2.3. 消息发送
 
 Producer其主要功能是负责向Broker发送消息，工作原理如下图所示：
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714360722169-56520ee9-0858-4191-80c0-672dd0591ace.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714360722169-56520ee9-0858-4191-80c0-672dd0591ace.png" alt="img" style="zoom:33%;" />
 
 Producer发送消息到对应broker时，会根据Paritition机制选择将消息存储到哪一个Paritition，如果Paritition机制设计合理，所有消息可以均匀分布到不同的Paritition里，这样就实现了负载均衡，如果一个Topic对应一个文件，那这个文件所在的机器I/O将成为这个topic的性能瓶颈，而有了Paritition之后，不同的消息可以并行写入不同的Paritition中，极大的提高了吞吐率，所谓的Paritition机制也就是Producer消息partitioning策略，具体有以下几种策略。
 
@@ -358,13 +358,13 @@ Producer发送消息到对应broker时，会根据Paritition机制选择将消�
 
 
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714360505101-39cd441b-9b50-4891-acfe-fa15ccaba64c.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714360505101-39cd441b-9b50-4891-acfe-fa15ccaba64c.png" alt="img" style="zoom:33%;" />
 
 - 随机策略
 
 - 随机策略默认从Partition列表中随机选择一个，随机策略的消息分布大致如下图所示。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714360556742-0423c2ca-bd41-4337-85b6-0beb45deaca7.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714360556742-0423c2ca-bd41-4337-85b6-0beb45deaca7.png" alt="img" style="zoom:33%;" />
 
 - 按消息键保序策略
 
@@ -383,7 +383,7 @@ kafka消费者API封装了对集群一系列Broker的访问，可以透明的消
 
 老版本的位移是提交到zookeeper中的，但是zookeeper其实并不是和进行大批量的读写操作，尤其是写操作。从0.9版本开始kafka提供了另一种解决方案：增加了_consumer_offsets这个topic，将offset信息写入这个topic，这样consumer就不需要依赖zookeeper。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714361918231-15fd4fa2-9377-4869-b05c-2a2529b0f666.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714361918231-15fd4fa2-9377-4869-b05c-2a2529b0f666.png" alt="img" style="zoom:33%;" />
 
 kafka的consumer group是采用pull的方式来消费消息，那么每个Consumer该消费哪个Partition的消息则需要一套严格的机制来保证，而且partition是可以水平无限扩展的，随着partition的扩展Consumer消费的partition也会重新分配，这里就涉及到kafka的消息消费分配策略，在kafka内部存在两种默认的分区分配策略：Range和RoundRobin，当以下事件发生时，Kafka将会进行一次分区分配:
 
@@ -395,11 +395,11 @@ kafka的consumer group是采用pull的方式来消费消息，那么每个Consum
 
 假设我们有个名为T1的主题，其中包含了5个分区，然后我们有两个消费者（C1,C2）来消费这5个分区里面的数据，而且C1的num.streams = 2,C2的num.streams = 1,（num.streams指的是消费者的消费线程个数）。Range策略是对每个主题而言的，首先对同一个主题里面的分区按照需要进行排序，并对消费者按照顺序进行排序。在这个例子中，拍完徐的分区将会是：0，1，2，3，4；消费者线程拍完序将会是C1-0,C1-1,C2-0,然后将partitions的个数除以消费者线程的总数来决定每个消费者线程消费几个分区。如果除不尽，那么前面几个消费者线程将会多消费一个分区，5个分区，3个消费者线程，5/3=1。而且除不尽，那么消费者线程C1-0,C1-1将会多消费一个分区，所以最后分区分配的结果看起来就是这样：C1-0消费0,1分区，C1-1消费2，3分区，C2-0消费4分区。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714362842066-69a80290-f43b-425e-8ccb-73d2772023ac.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714362842066-69a80290-f43b-425e-8ccb-73d2772023ac.png" alt="img" style="zoom:33%;" />
 
 如果增加partition，从之前的5个分区变成6个分区，那么最终的分配结果为：C1-0消费0,1分区，C1-1消费2，3分区，C2-0消费4，5分区。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714362905394-1376fb12-3020-411d-beaf-f38e2c668022.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714362905394-1376fb12-3020-411d-beaf-f38e2c668022.png" alt="img" style="zoom:33%;" />
 
 **RoundRobin策略**
 
@@ -410,7 +410,7 @@ kafka的consumer group是采用pull的方式来消费消息，那么每个Consum
 
 假设前面提到的2个消费者的num.streams = 2,RoundRobin策略的工作原理：将所有主题的分区组成TopicAndPartition列表，然后对TopicAndPartition列表按照hashCode进行排序，在我们的例子里面，假如按照hashCode排完序的topic-partitions依次为T1-5,T1-3,T1-0,T1-2,T1-1,T1-4.我们的消费者线程排序为C1-0,C1-1,C2-0,C2-1,最后分区分配的结果为：C1-0将消费T1-5, T1-1，,C1-1将消费T1-3，T1-4分区，C2-0将消费T1-0分区，C2-1将消费T1-2分区。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714363447090-5bf7317a-fe2e-4377-974f-96357b6c4cce.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714363447090-5bf7317a-fe2e-4377-974f-96357b6c4cce.png" alt="img" style="zoom:33%;" />
 
 
 
@@ -418,7 +418,7 @@ kafka的consumer group是采用pull的方式来消费消息，那么每个Consum
 
 Kafka的高可靠性的保障来源于其健壮的副本策略即partition的replication机制，kafka将为每个partition提供多个replication，同时将replication分布到整个集群的其他Broker中，具体的replication数量可以根据参数设置，这里的replication会选举一个Leader节点，其他节点为Follower节点，消息全部发送到Leader然后再通过同步算法同步到Follower节点中，当其中有replication不能工作会重新进行选举，即使部分Broker宕机仍然可以保证整个集群的高可用，消息不丢失。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714364032870-5c7e9e99-f338-4dae-b91f-5c2b88ebe959.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714364032870-5c7e9e99-f338-4dae-b91f-5c2b88ebe959.png" alt="img" style="zoom:33%;" />
 
 与此同时，当producer向leader发送数据时，可以通过request.required.acks参数来设置数据可靠性级别：
 
@@ -463,7 +463,7 @@ ISR中所有副本都跟上了Leader，通常只有ISR里的成员才可能被�
 为了讲清楚ISR的作用，下面介绍一下生产者可以选择的消息应答方式，生产者发送消息中包含acks字段，该字段代表Leader应答生产者之前Leader收到的应答数。
 
 - ack = 0 生产者无需等待服务端的任何确认，消息被添加到生产者套接字缓冲区后就视为已发送，因此ack=0不能保证服务端已收到消息，使用场景较少
-- ack = 1 : Leader将消息写入本地日志后无需等待Follower的消息确认就做出了应答。如果Leader在应答消息后立即宕机且其他Follower均未完成消息的复制，则该条消息将丢失。![img](https://cdn.nlark.com/yuque/0/2024/png/42819892/1714396377136-15099e0f-463c-494a-a7b3-c3c833110703.png)
+- ack = 1 : Leader将消息写入本地日志后无需等待Follower的消息确认就做出了应答。如果Leader在应答消息后立即宕机且其他Follower均未完成消息的复制，则该条消息将丢失。![img](assets/1714396377136-15099e0f-463c-494a-a7b3-c3c833110703.png)
 
 上图左侧稳态场景下，Partition1的数据冗余备份在Broker0和Broker2上，Broker0中的副本与Leader副本因网络开销等因素存在1秒钟同步时间差，Broker0中副本落后124条消息，Broker中的副本存在8秒钟同步时间差，Broker2中的副本落后7224条消息，如果途中的Broker1突然宕机且Broker0被选为Partition1中的Leader，则在Leader宕机前写入的124条消息未同步至Broker0中的副本，这次宕机会造成少量消息丢失。
 
@@ -480,7 +480,7 @@ ISR中所有副本都跟上了Leader，通常只有ISR里的成员才可能被�
 
 Leader的HW值由IS中所有备份的LEO最小值决定（Follower在发送FetchFRequest时会在PartitionFetchInfo中携带Follower的LEO）
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714397504404-5e1709dd-6685-4eb3-b1ce-c6e9786795c1.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714397504404-5e1709dd-6685-4eb3-b1ce-c6e9786795c1.png" alt="img" style="zoom:33%;" />
 
 Kafka原本使用HW来记录副本的备份进度，HW值的更新通常需要额外一轮FetcheRequest才能完成，存在一些边缘案例导致备份数据丢失或导致多个备份间的数据不一致。Kafka新引入了Leader epoch解决了HW 截断产生的问题。
 
@@ -496,7 +496,7 @@ Kafka使用Zookeeper存储Broker，topic等状态数据，Kafka集群中的Contr
 
 由于只是Broker与其他Broker断开连接，Zookeeper还能接收到Broker0的心跳，因此Zookeeper认为Broker依然存活。则对于：
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714398470906-a8ad36ed-55ec-4e34-ba28-58f4d81bce5a.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714398470906-a8ad36ed-55ec-4e34-ba28-58f4d81bce5a.png" alt="img" style="zoom:33%;" />
 
 - **partition0**
 
@@ -530,7 +530,7 @@ Broker0中的副本只是作为Partition1的Follower节点，而Broker0与Broker
 
 #### 2.3.3.2. Controller故障
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714399617953-34e106ad-b1d4-427a-943c-28cbb8ac9bd0.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714399617953-34e106ad-b1d4-427a-943c-28cbb8ac9bd0.png" alt="img" style="zoom:33%;" />
 
 **场景1 Controller与ZooKeeper断开连接**
 
@@ -560,7 +560,7 @@ Producer生成消息发送到Broker，涉及到大量的网络传输，如果一
 
 kafka的消息是一个一个的键值对，键可以设置为默认的null，键有两个用途，可以作为消息的附加信息，也可以用来决定该消息被写入到哪个partition。Topic的数据被分为一个或者多个Partition，Partition是消息的集合，Partition是Consumer消费的最小粒度。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714440785051-ba427e3c-c932-4cce-8659-563a764015a5.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714440785051-ba427e3c-c932-4cce-8659-563a764015a5.png" alt="img" style="zoom:33%;" />
 
 Kafka通过将Topic划分为多个Partition，Producer将消息分发到多个本地Partition的消息队列中，每个Partition消息队列的消息会写入到不同的Leader节点，消息经过路由策略，被分发到不同的Partition对应的本地队列，然后再批量发送到Partition对应的Leader节点。
 
@@ -574,7 +574,7 @@ Kafka中Topic中有多个partition，那么消息分配到某个Partition的策�
 
 #### 2.4.1.3. 发送流程
 
-#### <img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714442198025-4cc058b7-68dc-4afe-82be-1b9ac040686a.png" alt="img" style="zoom:33%;" />
+#### <img src="assets/1714442198025-4cc058b7-68dc-4afe-82be-1b9ac040686a.png" alt="img" style="zoom:33%;" />
 
 Producer先生产消息、序列化消息并压缩消息后，追加到本地的记录收集器(RecordAccumulator)，Sender不断轮询记录收集器，当满足一定条件时，将队列中的数据发送到Partition Leader节点。Sender发送数据到Broker的条件有两个：
 
@@ -583,7 +583,7 @@ Producer先生产消息、序列化消息并压缩消息后，追加到本地的
 
 Producer会为每个Partition都创建一个双端队列来缓存客户端消息，队列的每个元素是一个批记录(ProducerBatch)，批记录使用createdMs表示批记录的创建时间(批记录中第一条消息加入的时间)， topicPartion表示对应的Partition元数据。当Producer生产的消息经过序列化，会被先写入到recordsBuilder对象中。一旦队列中有批记录的大小达到阈值，就会被Sender发送到Partition对应的Leader节点；若批记录等待发送的时间达到阈值，消息也会被发送到Partition对应的Leader节点中。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714443264886-6a3e1f1b-4e7c-4a48-a3a7-1cffcb5c9cf2.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714443264886-6a3e1f1b-4e7c-4a48-a3a7-1cffcb5c9cf2.png" alt="img" style="zoom:33%;" />
 
 追加消息时首先要获取Partition所属的队列，然后取队列中最后一个批记录，如果队列中不存在批记录或者批记录的大小达到阈值，应该创建新的批记录，并且加入队列的尾部。这里先创建的批记录最先被消息填满，后创建的批记录表示最新的消息，追加消息时总是往队列尾部的批记录中追加。记录收集器用来缓存客户端的消息，还需要通过Sender才能将消息发送到Partition对应的Leader节点。
 
@@ -645,7 +645,7 @@ nextOffsetMetaData的读写操作发生在持久化和读取消息中，具体�
 
 #### 2.4.2.3. 基于索引文件的查询
 
-![img](https://cdn.nlark.com/yuque/0/2024/png/42819892/1714446709472-f4efce23-d4e4-4008-bdc9-15f15c3a92d9.png)
+![img](assets/1714446709472-f4efce23-d4e4-4008-bdc9-15f15c3a92d9.png)
 
 Kafka通过索引文件提高对磁盘上消息的查询效率。假设有1000条消息，每100条消息写满了一个日志分段，一共会有10个日志分段。客户端要查询偏移量为938的消息内容，如果没有索引文件，我们必须从第一个日志分段的数据文件中，从第一条消息一直往前读，直到找到偏移量为999的消息。有了索引文件后，我们可以在最后一个日志分段的索引文件中，首先使用绝对偏移量999减去基准偏移量900得到相对偏移量99，然后找到最接近相对偏移量99的索引数据90，相对偏移量90对应的物理地址是1365，然后再到数据文件中，从文件物理位置1365开始往后读消息，直到找到偏移量为999的消息。
 
@@ -667,7 +667,7 @@ Kafka中存在大量的网络数据持久化到磁盘(Producer到Broker)和磁�
 
 以将磁盘文件通过网络发送为例。下面展示了传统方式下读取数据后并通过网络发送所发生的数据拷贝：
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714447184098-21c242e1-3f3f-45b6-b11a-af01996964e9.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714447184098-21c242e1-3f3f-45b6-b11a-af01996964e9.png" alt="img" style="zoom:33%;" />
 
 
 
@@ -678,7 +678,7 @@ Kafka中存在大量的网络数据持久化到磁盘(Producer到Broker)和磁�
 
 Linux 2.4+内核通过sendfile系统调用，提供了零拷贝，数据通过DMA拷贝到内核态buffer后，直接通过DMA拷贝到NIC buffer，无需CPU拷贝。除了减少数据拷贝外， 因为整个读文件-网络发送由一个sendfile调用完成，整个过程只有两次上下文切换，没有CPU数据拷贝，因此大大提高了性能。
 
-<img src="https://cdn.nlark.com/yuque/0/2024/png/42819892/1714447585485-920f1dd3-88f2-4741-8ca7-2e36aeef53e0.png" alt="img" style="zoom:33%;" />
+<img src="assets/1714447585485-920f1dd3-88f2-4741-8ca7-2e36aeef53e0.png" alt="img" style="zoom:33%;" />
 
 - sendfile()通过DMA将文件内容拷贝到一个读取缓冲区，然后由内核将数据拷贝到与输出套接字相关联的内核缓冲区。
 

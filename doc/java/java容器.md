@@ -8,7 +8,7 @@
 - 在java中，除了以`map`结尾的类外，其他的类都实现了`Collection`类。
 - 以`map`为结尾的类都实现了`map`接口。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/java相关/assets/image-20240615103839737.png" alt="image-20240615103839737" style="zoom:50%;" />
+<img src="assets/image-20240615103839737.png" alt="image-20240615103839737" style="zoom:50%;" />
 
 # 2、 List,set,map,Queue对比
 1. **应用场景**
@@ -581,9 +581,9 @@ public interface BlockingQueue<E> extends Queue<E> {
 
 `BlockingQueue` 常用于生产者-消费者模型中，生产者线程会向队列中添加数据，而消费者线程会从队列中取出数据进行处理。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/java相关/assets/image-20240615195827727.png" alt="image-20240615195827727" style="zoom:25%;" />
+<img src="assets/image-20240615195827727.png" alt="image-20240615195827727" style="zoom:25%;" />
 
-![image-20240615195842244](/Users/yuyingsi/files/资料/Note/doc/java相关/assets/image-20240615195842244.png)
+![image-20240615195842244](/assets/image-20240615195842244.png)
 
 Java 中常用的阻塞队列实现类有以下几种：
 
@@ -1141,7 +1141,7 @@ public class HashMapTest {
 
 #### **JDK1.7**
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/java相关/assets/image-20240615214627839.png" alt="image-20240615214627839" style="zoom: 25%;" />
+<img src="assets/image-20240615214627839.png" alt="image-20240615214627839" style="zoom: 25%;" />
 
 1. **数据结构：**首先将数据分为一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据时，其他段的数据也能被其他线程访问。**分段的数组+链表**
 
@@ -1187,7 +1187,7 @@ public class HashMapTest {
 
 可以发现 Java8 的 ConcurrentHashMap 相对于 Java7 来说变化比较大，不再是之前的 **Segment 数组 + HashEntry 数组 + 链表**，而是 **Node 数组 + 链表 / 红黑树**。当冲突链表达到一定长度时，链表会转换成红黑树。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/java相关/assets/image-20240615214612012.png" alt="image-20240615214612012" style="zoom:25%;" />
+<img src="assets/image-20240615214612012.png" alt="image-20240615214612012" style="zoom:25%;" />
 
 1. **初始化 initTable()**
 
