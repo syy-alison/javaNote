@@ -10,7 +10,7 @@
 2. **操作系统的存在屏蔽了硬件层的复杂性。** 操作系统就像硬件使用的负责人，统筹着各种相关事项。
 3. **操作系统的内核（Kernel）是操作系统的核心部分，它负责系统的内存管理，硬件设备的管理，文件系统的管理以及应用程序的管理。** 内核是连接应用程序和硬件的桥梁，决定着系统的性能和稳定性。
 
-![内核](./images/Kernel_Layout.png)
+<img src="assets/image-20240619182114144.png" alt="image-20240619182114144" style="zoom:50%;" />
 
 
 
@@ -55,7 +55,7 @@
 
 应用程序如果需要进入内核空间，就需要通过系统调用，下面来看看系统调用的过程：
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613211343768.png" alt="image-20240613211343768" style="zoom:33%;" />
+<img src="assets/image-20240613211343768.png" alt="image-20240613211343768" style="zoom:33%;" />
 
 内核程序执行在内核态，用户程序执行在用户态。当应用程序使用系统调用时，会产生一个中断。发生中断后， CPU 会中断当前在执行的用户程序，转而跳转到中断处理程序，也就是开始执行内核程序。内核处理完后，主动触发中断，把 CPU 执行权限交回给用户程序，回到用户态继续工作。
 
@@ -67,7 +67,7 @@
 
 最重要的是定义计算机基本结构为 5 个部分，分别是**运算器、控制器、存储器、输入设备、输出设备**，这 5 个部分也被称为**冯诺依曼模型**。运算器、控制器是在中央处理器里的，存储器就我们常见的内存，输入输出设备则是计算机外接的设备，比如键盘就是输入设备，显示器就是输出设备。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613170217164.png" alt="image-20240613170217164" style="zoom: 50%;" />
+<img src="assets/image-20240613170217164.png" alt="image-20240613170217164" style="zoom: 50%;" />
 
 **内存**
 
@@ -152,7 +152,7 @@ CPU 从程序计数器读取指令、到执行、再到下一条指令，这个�
 
 另外，当 CPU 需要访问内存中某个数据的时候，如果寄存器有这个数据，CPU 就直接从寄存器取数据即可，如果寄存器没有这个数据，CPU 就会查询 L1 高速缓存，如果 L1 没有，则查询 L2 高速缓存，L2 还是没有的话就查询 L3 高速缓存，L3 依然没有的话，才去内存中取数据。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613173136361.png" alt="image-20240613173136361" style="zoom:50%;" />
+<img src="assets/image-20240613173136361.png" alt="image-20240613173136361" style="zoom:50%;" />
 
 ###  寄存器
 
@@ -179,9 +179,9 @@ SRAM 之所以叫「静态」存储器，是因为只要有电，数据就可以
 
 CPU 的高速缓存，通常可以分为 L1、L2、L3 这样的三层高速缓存，也称为一级缓存、二级缓存、三级缓存。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613172620090.png" alt="image-20240613172620090" style="zoom:33%;" />
+<img src="assets/image-20240613172620090.png" alt="image-20240613172620090" style="zoom:33%;" />
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613175933196.png" alt="image-20240613175933196" style="zoom:33%;" />
+<img src="assets/image-20240613175933196.png" alt="image-20240613175933196" style="zoom:33%;" />
 
  **L1 高速缓存**
 
@@ -221,7 +221,7 @@ CPU 读取数据的时候，无论数据是否存放到 Cache 中，CPU 都是�
   3. 对比内存地址中组标记和 CPU Cache Line 中的组标记，确认 CPU Cache Line 中的数据是我们要访问的内存数据，如果不是的话，CPU 就会直接访问内存，并重新加载数据，如果是的话，则往下执行；
   4. 根据内存地址中偏移量信息，从 CPU Cache Line 的数据块中，读取对应的字。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613190404732.png" alt="image-20240613190404732" style="zoom:30%;" />
+<img src="assets/image-20240613190404732.png" alt="image-20240613190404732" style="zoom:30%;" />
 
 **如何写出让 CPU 跑得更快的代码？**
 
@@ -295,17 +295,17 @@ MESI 协议其实是 4 个状态单词的开头字母缩写，分别是：
 
 ### 伪共享问题
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613202328854.png" alt="image-20240613202328854" style="zoom:33%;" />
+<img src="assets/image-20240613202328854.png" alt="image-20240613202328854" style="zoom:33%;" />
 
 多个线程同时读写同一个 Cache Line 的不同变量时，而导致 CPU Cache 失效的现象。那么对于多个线程共享的热点数据，即经常会修改的数据，应该避免这些数据刚好在同一个 Cache Line 中，避免的方式一般有 Cache Line 大小字节对齐（Linux 内核中的宏定义`__cacheline_aligned_in_smp` ），以及字节填充（应用层面）等方法。
 
 举个例子，有下面这个结构体：
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613202823827.png" alt="image-20240613202823827" style="zoom:25%;" />
+<img src="assets/image-20240613202823827.png" alt="image-20240613202823827" style="zoom:25%;" />
 
 结构体里的两个成员变量 a 和 b 在物理内存地址上是连续的，于是它们可能会位于同一个 Cache Line 中。所以，为了防止前面提到的 Cache 伪共享问题，我们可以使用上面介绍的宏定义，将 b 的地址设置为 Cache Line 对齐地址，如下：
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613202852096.png" alt="image-20240613202852096" style="zoom:25%;" />
+<img src="assets/image-20240613202852096.png" alt="image-20240613202852096" style="zoom:25%;" />
 
 这样 a 和 b 变量就不会在同一个 Cache Line 中了。
 
@@ -322,7 +322,7 @@ Linux系统一般来说，没有创建线程的进程，是只有单个执行流
 
 由于任务有优先级之分，Linux 系统为了保障高优先级的任务能够尽可能早的被执行，于是分为了这几种调度类
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613203144211.png" alt="image-20240613203144211" style="zoom:25%;" />
+<img src="assets/image-20240613203144211.png" alt="image-20240613203144211" style="zoom:25%;" />
 
 Deadline 和 Realtime 这两个调度类，都是应用于实时任务的，这两个调度类的调度策略合起来共有这三种，它们的作用如下：
 
@@ -432,11 +432,11 @@ Linux 中的软中断包括网络收发、定时、调度、RCU 锁等各种类�
 - 并发：单个核心交替运行程序
 - 并行：多个核心同时运行程序
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614132323929.png" alt="image-20240614132323929" style="zoom:30%;" />
+<img src="assets/image-20240614132323929.png" alt="image-20240614132323929" style="zoom:30%;" />
 
 ### 进程的状态
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614132937879.png" alt="image-20240614132937879" style="zoom:30%;" />
+<img src="assets/image-20240614132937879.png" alt="image-20240614132937879" style="zoom:30%;" />
 
 进程分为五种状态：
 
@@ -497,7 +497,7 @@ Linux 中的软中断包括网络收发、定时、调度、RCU 锁等各种类�
 
 一般会选择链表，因为可能面临进程创建，销毁等调度导致进程状态发生变化，所以链表能够更加灵活的插入和删除。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614134316065.png" alt="image-20240614134316065" style="zoom:25%;" />
+<img src="assets/image-20240614134316065.png" alt="image-20240614134316065" style="zoom:25%;" />
 
 ### 进程的控制
 
@@ -650,7 +650,7 @@ Linux 中的软中断包括网络收发、定时、调度、RCU 锁等各种类�
   - 在 shell 里面执行 `A | B`命令的时候，A 进程和 B 进程都是 shell 创建出来的子进程，A 和 B 之间不存在父子关系，它俩的父进程都是 shell。
   - 所以说，在 shell 里通过「`|`」匿名管道将多个命令连接在一起，实际上也就是创建了多个子进程，那么在我们编写 shell 脚本时，能使用一个管道搞定的事情，就不要多用一个管道，这样可以减少创建子进程的系统开销。
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614144606108.png" alt="image-20240614144606108" style="zoom:20%;" />
+  <img src="assets/image-20240614144606108.png" alt="image-20240614144606108" style="zoom:20%;" />
 
 **消息队列** 
 
@@ -669,7 +669,7 @@ Linux 中的软中断包括网络收发、定时、调度、RCU 锁等各种类�
 - **多个进程可以访问同一块内存空间，不同进程可以及时看到对方进程中堆共享内存中数据的更新。**
 - **如果多个进程同时修改同一个共享内存，很容易造成冲突。**
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614145325182.png" alt="image-20240614145325182" style="zoom:15%;" />
+<img src="assets/image-20240614145325182.png" alt="image-20240614145325182" style="zoom:15%;" />
 
 **信号量**
 
@@ -712,7 +712,7 @@ int socket(int domain, int type, int protocal)
 
   这里需要注意的是，服务端调用 `accept` 时，连接成功了会返回一个已完成连接的 socket，后续用来传输数据。所以，监听的 socket 和真正用来传送数据的 socket，是「**两个**」 socket，一个叫作**监听 socket**，一个叫作**已完成连接 socket**。
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614150107857.png" alt="image-20240614150107857" style="zoom:33%;" />
+  <img src="assets/image-20240614150107857.png" alt="image-20240614150107857" style="zoom:33%;" />
 
   - 服务端和客户端初始化 `socket`，得到文件描述符；
   - 服务端调用 `bind`，将绑定在 IP 地址和端口;
@@ -725,7 +725,7 @@ int socket(int domain, int type, int protocal)
 
 - **针对 UDP 协议通信的 socket 编程模型**
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614150204936.png" alt="image-20240614150204936" style="zoom:25%;" />
+  <img src="assets/image-20240614150204936.png" alt="image-20240614150204936" style="zoom:25%;" />
 
   UDP 是没有连接的，所以不需要三次握手，也就不需要像 TCP 调用 listen 和 connect，但是 UDP 的交互仍然需要 IP 地址和端口号，因此也需要 bind。
 
@@ -920,7 +920,7 @@ int socket(int domain, int type, int protocal)
 - 程序是由若干个逻辑分段组成，如可由代码分段，数据分段，栈段和堆段组成，不同段是由不同的属性，所以可以使用分段的形式将这些段分离开来。
 - 虚拟地址是通过段表与物理地址进行映射，解决了程序本身不需要关心具体的物理内存地址的问题。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613212619197.png" alt="image-20240613212619197" style="zoom:25%;" />
+<img src="assets/image-20240613212619197.png" alt="image-20240613212619197" style="zoom:25%;" />
 
 - **虚拟地址和物理地址映射过程**：
   - 分段机制下的虚拟地址由两部分组成，段选择子（段号和特权等标志位）和段内偏移量。段选择子存放在寄存器中。
@@ -946,8 +946,7 @@ int socket(int domain, int type, int protocal)
   - 如果内存空间不够，操作系统会把其他正在运行的进程中的「最近没被使用」的内存页面给释放掉，也就是暂时写在硬盘上，称为**换出**（*Swap Out*）。一旦需要的时候，再加载进来，称为**换入**（*Swap In*）。所以，一次性写入磁盘的也只有少数的一个页或者几个页，不会花太多时间，**内存交换的效率就相对比较高。**
   - 分页的方式使得我们在加载程序的时候，不再需要一次性都把程序加载到物理内存中。我们完全可以在进行虚拟内存和物理内存的页之间的映射之后，并不真的把页加载到物理内存里，而是**只有在程序运行中，需要用到对应虚拟内存页里面的指令和数据时，再加载到物理内存里面去。**
 
-
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613214314466.png" alt="image-20240613214314466" style="zoom:25%;" />
+<img src="assets/image-20240613214314466.png" alt="image-20240613214314466" style="zoom:25%;" />
 
 - **虚拟地址与物理地址之间通过页表来映射。** 因为操作系统是可以同时运行非常多的内存的，所以页表会占用大量的内存。
   - 把虚拟内存地址，切分成**页号**和**偏移量**；
@@ -969,7 +968,7 @@ int socket(int domain, int type, int protocal)
 >
 > 对于二级页表（2^20个），可以分为1024个一级页表，每个一级页表包含1024个页表项，形成二级页表，这样一级页表就可以覆盖整个4GB虚拟内存，二级页表是使用到了再创建。
 >
-> <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613215154855.png" alt="image-20240613215154855" style="zoom:33%;" />
+> <img src="assets/image-20240613215154855.png" alt="image-20240613215154855" style="zoom:33%;" />
 >
 > 单页表为什么不能使用时再创建？
 >
@@ -982,7 +981,9 @@ int socket(int domain, int type, int protocal)
 #### 快表(TLB)
 解决虚拟地址到物理地址的转换太慢的问题。
 
-- 将最常访问的几个页表项存储到访问速度更快的硬件，也就是专门存放程序最常访问的页表项的Cache，这个Cache就是TLB，在CPU寻址时，会先查快表。如果没有找到，才继续查常规的页表。
+- 将最常访问的几个页表项存储到访问速度更快的硬件，也就是专门存放程序最常访问的页表项的Cache，这个Cache就是TLB，在CPU寻址时，会先查快表。如果没有找
+
+- 到，才继续查常规的页表。
 
 - 有了 TLB 后，那么 CPU 在寻址时，会先查 TLB，如果没找到，才会继续查常规的页表。
 
@@ -990,7 +991,7 @@ int socket(int domain, int type, int protocal)
 
 ### 段页式内存管理
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613215342633.png" alt="image-20240613215342633" style="zoom:30%;" />
+<img src="assets/image-20240613215342633.png" alt="image-20240613215342633" style="zoom:30%;" />
 
 - 先将程序划分为多个有逻辑意义的段，也就是前面提到的分段机制；
 - 接着将每个段划分为多个页，也就是对分段划分出来的连续空间，再划分固定大小的页。
@@ -1018,7 +1019,7 @@ int socket(int domain, int type, int protocal)
 
   - 在 Linux 操作系统中，虚拟地址空间的内部又被分为**内核空间和用户空间**两部分，不同位数的系统，地址空间的范围也不同。比如最常见的 32 位和 64 位系统
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240613222740633.png" alt="image-20240613222740633" style="zoom:30%;" />
+  <img src="assets/image-20240613222740633.png" alt="image-20240613222740633" style="zoom:30%;" />
 
   通过这里可以看出：
 
@@ -1116,13 +1117,13 @@ int socket(int domain, int type, int protocal)
 5. 页面从磁盘换入到物理内存完成后，则把页表项中的状态位修改为「有效的」。
 6. 最后，CPU 重新执行导致缺页异常的指令。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614155539662.png" alt="image-20240614155539662" style="zoom:33%;" />
+<img src="assets/image-20240614155539662.png" alt="image-20240614155539662" style="zoom:33%;" />
 
 找不到空闲页的话，就说明此时内存已满了，这时候，就需要「页面置换算法」选择一个物理页，如果该物理页有被修改过（脏页），则把它换出到磁盘，然后把该被置换出去的页表项的状态改成「无效的」，最后把正在访问的页面装入到这个物理页中。
 
 这里提一下，页表项通常有如下图的字段：
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614155751406.png" alt="image-20240614155751406" style="zoom:30%;" />
+<img src="assets/image-20240614155751406.png" alt="image-20240614155751406" style="zoom:30%;" />
 
 那其中：
 
@@ -1133,7 +1134,7 @@ int socket(int domain, int type, int protocal)
 
 所以，页面置换算法的功能是，**当出现缺页异常，需调入新页面而内存已满时，选择被置换的物理页面**，也就是说选择一个物理页面换出到磁盘，然后把需要访问的页面换入到物理页。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614160426640.png" alt="image-20240614160426640" style="zoom:20%;" />
+<img src="assets/image-20240614160426640.png" alt="image-20240614160426640" style="zoom:20%;" />
 
 **页面置换算法：**
 
@@ -1178,11 +1179,11 @@ int socket(int domain, int type, int protocal)
 
   - 那针对 SCAN 算法的优化则叫 LOOK 算法，它的⼯作⽅式，磁头在每个⽅向上仅仅移动到最远的请求位 置，然后⽴即反向移动，⽽不需要移动到磁盘的最始端或最末端，**反向移动的途中会响应请求。**
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614162213508.png" alt="image-20240614162213508" style="zoom:20%;" />
+  <img src="assets/image-20240614162213508.png" alt="image-20240614162213508" style="zoom:20%;" />
 
   - ⽽针 C-SCAN 算法的优化则叫 C-LOOK，它的⼯作⽅式，磁头在每个⽅向上仅仅移动到最远的请求位置， 然后⽴即反向移动，⽽不需要移动到磁盘的最始端或最末端，**反向移动的途中不会响应请求。**
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614162155304.png" alt="image-20240614162155304" style="zoom:20%;" />
+<img src="assets/image-20240614162155304.png" alt="image-20240614162155304" style="zoom:20%;" />
 
 # 文件系统
 
@@ -1213,7 +1214,7 @@ int socket(int domain, int type, int protocal)
 
   - 磁盘读写的最小单位是**扇区**，扇区的大小只有 `512B` 大小，文件系统把多个扇区组成了一个**逻辑块**，每次读写的最小单位就是逻辑块（数据块），Linux 中的逻辑块大小为 `4KB`，也就是一次性读写 8 个扇区，这将大大提高了磁盘的读写的效率。
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614163558018.png" alt="image-20240614163558018" style="zoom:30%;" />
+  <img src="assets/image-20240614163558018.png" alt="image-20240614163558018" style="zoom:30%;" />
 
   - 索引节点是存储在硬盘上的数据，那么为了加速文件的访问，通常会把索引节点加载到内存中。
   - 磁盘进行格式化的时候，会被分成三个存储区域，分别是超级块、索引节点区和数据块区。
@@ -1240,13 +1241,13 @@ Linux 支持的文件系统也不少，根据存储位置的不同，可以把�
 
 在 Linux 文件系统中，用户空间、系统调用、虚拟文件系统、缓存、文件系统以及存储之间的关系如下图：
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614164000198.png" alt="image-20240614164000198" style="zoom:25%;" />
+<img src="assets/image-20240614164000198.png" alt="image-20240614164000198" style="zoom:25%;" />
 
 ## 文件的使用
 
 我们从用户角度来看文件的话，就是我们要怎么使用文件？首先，我们得通过系统调用来打开一个文件。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614164142100.png" alt="image-20240614164142100" style="zoom:30%;" />
+<img src="assets/image-20240614164142100.png" alt="image-20240614164142100" style="zoom:30%;" />
 
 ```c
 fd = open(name, flag); # 打开文件
@@ -1280,11 +1281,11 @@ close(fd);             # 关闭文件
 
 文件的数据是要存储在硬盘上面的，数据在磁盘上的存放方式，就像程序在内存中存放的方式那样，有以下两种：**连续空间存放方式**和**非连续空间存放方式**。中，非连续空间存放方式又可以分为「链表方式」和「索引方式」。不同的存储方式，有各自的特点，重点是要分析它们的存储效率和读写性能。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614171258413.png" alt="image-20240614171258413" style="zoom:30%;" />
+<img src="assets/image-20240614171258413.png" alt="image-20240614171258413" style="zoom:30%;" />
 
 - **连续空间存放方式**
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614170618325.png" alt="image-20240614170618325" style="zoom:20%;" />
+  <img src="assets/image-20240614170618325.png" alt="image-20240614170618325" style="zoom:20%;" />
 
   - 连续空间存放方式顾名思义，**文件存放在磁盘「连续的」物理空间中**。这种模式下，文件的数据都是紧密相连，**读写效率很高**，因为一次磁盘寻道就可以读出整个文件。
   - 使用连续存放的方式有一个前提，必须先知道一个文件的大小，这样文件系统才会根据文件的大小在磁盘上找到一块连续的空间分配给文件。所以，**文件头里需要指定「起始块的位置」和「长度」**，有了这两个信息就可以很好的表示文件存放方式是一块连续的磁盘空间。(此处说的文件头，就类似于 Linux 的 inode。)
@@ -1296,7 +1297,7 @@ close(fd);             # 关闭文件
 
   - 链表方式
 
-       <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614170637893.png" alt="image-20240614170637893" style="zoom:25%;" /><img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614170817015.png" alt="image-20240614170817015" style="zoom:15%;" />
+       <img src="assets/image-20240614170637893.png" alt="image-20240614170637893" style="zoom:25%;" /><img src="assets/image-20240614170817015.png" alt="image-20240614170817015" style="zoom:15%;" />
 
     - 链表的方式存放是**离散的，不用连续的**，于是就可以**消除磁盘碎片**，可大大提高磁盘空间的利用率，同时**文件的长度可以动态扩展**。根据实现的方式的不同，链表可分为「**隐式链表**」和「**显式链接**」两种形式。
     - 文件要以「**隐式链表**」的方式存放的话，**实现的方式是文件头要包含「第一块」和「最后一块」的位置，并且每个数据块里面留出一个指针空间，用来存放下一个数据块的位置**，这样一个数据块连着一个数据块，从链头开始就可以顺着指针找到所有的数据块，所以存放的方式可以是不连续的。
@@ -1306,7 +1307,7 @@ close(fd);             # 关闭文件
 
   - **索引的方式**     
 
-    ​                                                            <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614170345482.png" alt="image-20240614170345482" style="zoom:25%;" />    
+    ​                                                            <img src="assets/image-20240614170345482.png" alt="image-20240614170345482" style="zoom:25%;" />    
 
     - 链表的方式解决了连续分配的磁盘碎片和文件动态扩展的问题，但是不能有效支持直接访问（FAT除外），索引的方式可以解决这个问题。
 
@@ -1324,11 +1325,11 @@ close(fd);             # 关闭文件
 
       - 一种是链表 + 索引的组合，这种组合称为「**链式索引块**」，它的实现方式是**在索引数据块留出一个存放下一个索引数据块的指针**，于是当一个索引数据块的索引信息用完了，就可以通过指针的方式，找到下一个索引数据块的信息。那这种方式也会出现前面提到的链表方式的问题，万一某个指针损坏了，后面的数据也就会无法读取了。
 
-        <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614171123315.png" alt="image-20240614171123315" style="zoom:15%;" />
+        <img src="assets/image-20240614171123315.png" alt="image-20240614171123315" style="zoom:15%;" />
 
       - 另外一种组合方式是索引 + 索引的方式，这种组合称为「**多级索引块**」，实现方式是**通过一个索引块来存放多个索引数据块**，一层套一层索引。
 
-      ​                                                        <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614171204898.png" alt="image-20240614171204898" style="zoom:25%;" />
+      ​                                                        <img src="assets/image-20240614171204898.png" alt="image-20240614171204898" style="zoom:25%;" />
 
   早期 Unix 文件系统是根据文件的大小，存放的方式会有所变化：
 
@@ -1361,7 +1362,7 @@ close(fd);             # 关闭文件
 
 - **空闲表法**
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614171757362.png" alt="image-20240614171757362" style="zoom:25%;" />
+  <img src="assets/image-20240614171757362.png" alt="image-20240614171757362" style="zoom:25%;" />
 
   - 空闲表法就是为所有空闲空间建立一张表，表内容包括空闲区的第一个块号和该空闲区的块个数，注意，这个方式是连续分配的。
   - 当请求分配磁盘空间时，系统依次扫描空闲表里的内容，直到找到一个合适的空闲区域为止。当用户撤销一个文件时，系统回收文件空间。这时，也需顺序扫描空闲表，寻找一个空闲表条目并将释放空间的第一个物理块号及它占用的块数填到这个条目中
@@ -1369,7 +1370,7 @@ close(fd);             # 关闭文件
 
 - **空闲链表法**
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614171808031.png" alt="image-20240614171808031" style="zoom:25%;" />
+  <img src="assets/image-20240614171808031.png" alt="image-20240614171808031" style="zoom:25%;" />
 
   - 每一个空闲块里有一个指针指向下一个空闲块，这样也能很方便的找到空闲块并管理起来
   - 当创建文件需要一块或几块时，就从链头上依次取下一块或几块。反之，当回收空间时，把这些空闲块依次接到链头上。
@@ -1395,7 +1396,7 @@ close(fd);             # 关闭文件
 
 - 在 Linux 文件系统，把这个结构称为一个**块组**，那么有 N 多的块组，就能够表示 N 大的文件。
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614172556869.png" alt="image-20240614172556869" style="zoom:33%;" />
+  <img src="assets/image-20240614172556869.png" alt="image-20240614172556869" style="zoom:33%;" />
 
   最前面的第一个块是引导块，在系统启动时用于启用引导，接着后面就是一个一个连续的块组了，块组的内容如下：
 
@@ -1419,7 +1420,7 @@ close(fd);             # 关闭文件
 
 - 列表中每一项就代表该目录下的文件的文件名和对应的 inode，通过这个 inode，就可以找到真正的文件。
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614172749551.png" alt="image-20240614172749551" style="zoom:33%;" />
+  <img src="assets/image-20240614172749551.png" alt="image-20240614172749551" style="zoom:33%;" />
 
   通常，第一项是「`.`」，表示当前目录，第二项是「`..`」，表示上一级目录，接下来就是一项一项的文件名和 inode。
 
@@ -1437,11 +1438,11 @@ close(fd);             # 关闭文件
 
 - 硬链接是**多个目录项中的「索引节点」指向一个文件**，也就是指向同一个 inode，但是 inode 是不可能跨越文件系统的，每个文件系统都有各自的 inode 数据结构和列表，所以**硬链接是不可用于跨文件系统的**。由于多个目录项都是指向一个 inode，那么**只有删除文件的所有硬链接以及源文件时，系统才会彻底删除该文件。**
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614173005961.png" alt="image-20240614173005961" style="zoom:33%;" />
+  <img src="assets/image-20240614173005961.png" alt="image-20240614173005961" style="zoom:33%;" />
 
 - 软链接相当于重新创建一个文件，这个文件有**独立的 inode**，但是这个**文件的内容是另外一个文件的路径**，所以访问软链接的时候，实际上相当于访问到了另外一个文件，所以**软链接是可以跨文件系统的**，甚至**目标文件被删除了，链接文件还是在的，只不过指向的文件找不到了而已。**
 
-  <img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614173039437.png" alt="image-20240614173039437" style="zoom:35%;" />
+  <img src="assets/image-20240614173039437.png" alt="image-20240614173039437" style="zoom:35%;" />
 
 ## 文件 I/O
 
@@ -1482,7 +1483,7 @@ close(fd);             # 关闭文件
 - 磁盘控制器收到指令后，于是就开始准备数据，会把数据放入到磁盘控制器的内部缓冲区中，然后产生一个**中断**；
 - CPU 收到中断信号后，停下手头的工作，接着把磁盘控制器的缓冲区的数据一次一个字节地读进自己的寄存器，然后再把寄存器里的数据写入到内存，而在数据传输的期间 CPU 是无法执行其他任务的。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614202909850.png" alt="image-20240614202909850" style="zoom:33%;" />
+<img src="assets/image-20240614202909850.png" alt="image-20240614202909850" style="zoom:33%;" />
 
 可以看到，整个数据的传输过程，都要需要 CPU 亲自参与搬运数据的过程，而且这个过程，CPU 是不能做其他事情的。
 
@@ -1490,7 +1491,7 @@ close(fd);             # 关闭文件
 
 DMA 控制器进行数据传输的过程：
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614203138428.png" alt="image-20240614203138428" style="zoom:25%;" />
+<img src="assets/image-20240614203138428.png" alt="image-20240614203138428" style="zoom:25%;" />
 
 具体过程：
 
@@ -1519,7 +1520,7 @@ write(socket, tmp_buf, len);
 
 代码很简单，虽然就两行代码，但是这里面发生了不少的事情。
 
-<img src="/Users/yuyingsi/files/资料/Note/doc/操作系统/assets/image-20240614203605527.png" alt="image-20240614203605527" style="zoom:30%;" />
+<img src="assets/image-20240614203605527.png" alt="image-20240614203605527" style="zoom:30%;" />
 
 首先，期间共**发生了 4 次用户态与内核态的上下文切换**，因为发生了两次系统调用，一次是 `read()` ，一次是 `write()`，每次系统调用都得先从用户态切换到内核态，等内核完成任务后，再从内核态切换回用户态。
 
