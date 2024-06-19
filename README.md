@@ -25,16 +25,16 @@
 
 #### java
 
-- **[Java 基础](/doc/java/java基础.html)**
-- **[java容器](/doc/java/java容器.html)**
-- **[java并发](/doc/java/java并发.html)**
-- **[java虚拟机](/doc/java/jvm.html)**
+- **[Java 基础](doc/java/java基础.html)**
+- **[java容器](doc/java/java容器.html)**
+- **[java并发](doc/java/java并发.html)**
+- **[java虚拟机](doc/java/jvm.html)**
 
 #### 计算机基础
 
-- **[操作系统](/doc/计算机网络/os.html)**
+- **[操作系统](doc/计算机网络/os.html)**
 
-- **[网络](/doc/OS/network.html)**
+- **[网络](doc/OS/network.html)**
 
 
 ####  数据库
@@ -44,9 +44,9 @@
 
 #### 开发工具
 
-- **[git](/doc/工具/git.html)**
-- **[maven](/doc/工具/maven.html)**
-- **[Docker](/doc/工具/Docker.html)**
+- **[git](doc/工具/git.html)**
+- **[maven](doc/工具/maven.html)**
+- **[Docker](doc/工具/Docker.html)**
 
 #### 常用框架
 
