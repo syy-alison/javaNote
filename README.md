@@ -4,60 +4,60 @@
 
 ##### 数据结构
 
-- **[链表](/doc/数据结构/链表.html)**
-- **[树](/doc/数据结构/树.html)**
-- **[栈和队列](/doc/数据结构/栈和队列.html)**
-- **[哈希表](/doc/数据结构/哈希表.html)**
-- **[字符串](/doc/数据结构/字符串.html)**
-- **[数组与矩阵](/doc/数据结构/数组与矩阵.html)**
-- **[图](/doc/数据结构/图.html)**
-- **[位运算](/doc/数据结构/位运算.html)**
+- **[链表](./doc/数据结构/链表.html)**
+- **[树](./doc/数据结构/树.html)**
+- **[栈和队列](./doc/数据结构/栈和队列.html)**
+- **[哈希表](./doc/数据结构/哈希表.html)**
+- **[字符串](./doc/数据结构/字符串.html)**
+- **[数组与矩阵](./doc/数据结构/数组与矩阵.html)**
+- **[图](./doc/数据结构/图.html)**
+- **[位运算](./doc/数据结构/位运算.html)**
 
 ##### 算法
 
-- **[双指针](/doc/数据结构/双指针.html)**
-- **[排序](/doc/数据结构/排序.html)**
-- **[贪心思想](/doc/数据结构/贪心思想.html)**
-- **[二分](/doc/数据结构/二分.html)**
-- **[动态规划](/doc/数据结构/动态规划.html)**
-- **[递归](/doc/数据结构/递归.html)**
-- **[搜索](/doc/数据结构/搜索.html)**
-- **[回溯](/doc/数据结构/回溯.html)**
+- **[双指针](./doc/数据结构/双指针.html)**
+- **[排序](./doc/数据结构/排序.html)**
+- **[贪心思想](./doc/数据结构/贪心思想.html)**
+- **[二分](./doc/数据结构/二分.html)**
+- **[动态规划](./doc/数据结构/动态规划.html)**
+- **[递归](./doc/数据结构/递归.html)**
+- **[搜索](./doc/数据结构/搜索.html)**
+- **[回溯](./doc/数据结构/回溯.html)**
 
 #### java
 
-- **[Java 基础](/doc/java/java基础.html)**
-- **[java容器](/doc/java/java容器.html)**
-- **[java并发](/doc/java/java并发.html)**
-- **[java虚拟机](/doc/java/jvm.html)**
+- **[Java 基础](./doc/java/java基础.html)**
+- **[java容器](./doc/java/java容器.html)**
+- **[java并发](./doc/java/java并发.html)**
+- **[java虚拟机](./doc/java/jvm.html)**
 
 #### 计算机基础
 
-- **[操作系统](/doc/计算机基础/os.html)**
+- **[操作系统](./doc/计算机基础/os.html)**
 
-- **[网络](/doc/计算机基础/network.html)**
+- **[网络](./doc/计算机基础/network.html)**
 
 
 ####  存储
 
-- **[mysql](/doc/存储/Mysql.html)**
-- **[redis](/doc/存储/redis.html)**
+- **[mysql](./doc/存储/Mysql.html)**
+- **[redis](./doc/存储/redis.html)**
 
 #### 开发工具
 
-- **[git](/doc/工具/git.html)**
-- **[maven](/doc/工具/maven.html)**
-- **[Docker](/doc/工具/Docker.html)**
+- **[git](./doc/工具/git.html)**
+- **[maven](./doc/工具/maven.html)**
+- **[Docker](./doc/工具/Docker.html)**
 
 #### 框架
 
-- **[spring](/doc/框架/Spring.html)**
-- **[springboot](/doc/框架/SpringBoot.html)**
-- **[mybatis](/doc/框架/Mybatis.html)**
+- **[spring](./doc/框架/Spring.html)**
+- **[springboot](./doc/框架/SpringBoot.html)**
+- **[mybatis](./doc/框架/Mybatis.html)**
 
 #### 系统设计
 
-- **[设计模式](/doc/系统设计/设计模式.html)**
+- **[设计模式](./doc/系统设计/设计模式.html)**
 - 定时任务
 - 场景题
 
@@ -66,7 +66,7 @@
 - CDN
 - 负载均衡
 - 数据库优化
-- **[消息队列](/doc/消息队列/mq.html)**
+- **[消息队列](./doc/消息队列/mq.html)**
 - 池化技术
 - 本地缓存
 
