@@ -6,17 +6,25 @@
 
 ## 1.1. 什么是消息队列
 
-消息队列是一种进程间通信或者同一进程的不同线程间的通信方式，主要解决应用耦合，异步消息，流量削峰等问题，实现高性能，高可用，可伸缩和最终一致性架构。是大型分布式系统不可缺少的中间件。消息发布者只管把消息发布到MQ中而不管谁来取，消息使用者只管从MQ中取消息而不管是谁发布的，这样发布者和使用者都不知道对方的存在。
+- 消息队列是一种进程间通信或者同一进程的不同线程间的通信方式。
+
+- 是一个存放消息的容器。消息发布者只管把消息发布到MQ中而不管谁来取，消息使用者只管从MQ中取消息而不管是谁发布的，这样发布者和使用者都不知道对方的存在。
+- 主要解决应用耦合，异步消息，流量削峰等问题，实现高性能，高可用，可伸缩和最终一致性架构。是大型分布式系统不可缺少的中间件。
 
 ![1714302901693-80f1a3bd-508f-42f6-9d5e-f5b742a70ba4.png](assets/1714302901693-80f1a3bd-508f-42f6-9d5e-f5b742a70ba4.png)
 
 ## 1.2. 使用场景
 
-- **异步处理**：从A系统接收数据后计算的耗时比较久，计算的流程不影响主线程时，就可以通过MQ的方式异步进行处理。
+- **异步处理（提高系统性能）**：某些耗时较大但不不影响主线程的操作，可以通过MQ的方式异步进行处理，可以减少系统响应时间。
 - **应用解耦**：比如系统A进行某项操作之后，通知系统B和C，系统BC接收到消息后进行相同的处理，假如B系统需要下线或者新增一个系统时，就需要改整个系统的代码，如此反复添加和删除依赖的系统，系统便难以维护，此时可以通过MQ来进行解耦。
-- **流量削峰**：有一个活动页面，平时QPS非常低，但是在某个时刻的QPS特别高，超过了系统的处理能力，而进行机器扩容容易造成利用率低下，通过MQ的方式可以进行削峰。
+- **流量削峰**：先将短时间高并发产生的事务消息存储在消息队列中，然后后端服务再慢慢根据自己的能力去消费这些消息，这样就避免直接把后端服务打垮掉。举例：在电子商务一些秒杀、促销活动中，合理使用消息队列可以有效抵御促销活动刚开始大量订单涌入对系统的冲击。
+- **延迟处理：**消息发送后不会立即被消费，而是指定一个时间，到时间后再消费。
+- **顺序保证**：在很多应用场景中，处理数据的顺序至关重要。消息队列保证数据按照特定的顺序被处理，适用于那些对数据顺序有严格要求的场景
+- **数据流处理**：针对分布式系统产生的海量数据流，如业务日志、监控数据、用户行为等，消息队列可以实时或批量收集这些数据，并将其导入到大数据处理引擎中，实现高效的数据流管理和处理。
 
 ## 1.3. 消息队列协议
+
+**为了让消息发送者和消息接收者都能够明白消息所承载的信息**（消息发送者需要知道如何构造消息；消息接收者需要知道如何解析消息）**，它们就需要按照一种统一的格式描述消息，这种统一的格式称之为消息协议**。所以，**有效的消息一定具有某一种格式；而没有格式的消息是没有意义的**。
 
 ### 1.3.1. AMQP
 
@@ -42,9 +50,7 @@ AMQP 0.10在灵活度增加的同时复杂度也增加了。
 
 表示关键实例和语义的逻辑框架，它必须对兼容AMQP实现的服务器可用，使得服务的状态可以通过客户端按本规范中定义的语义来实现。
 
-
-
-![1714304319850-b0796ec0-9afe-4045-81da-0eaa78f9eeee.png](assets/1714304319850-b0796ec0-9afe-4045-81da-0eaa78f9eeee.png)
+![image-20240620140119969](assets/image-20240620140119969.png)
 
 消息被发布者发送给交换机，交换机常常被比喻为邮局或者邮箱，交换机将受到的消息按照路由规则分发到绑定的队列中，最后AMQP代理会将消息投递给订阅了此队列的消费者，或者消费者按需获取。
 
@@ -215,7 +221,7 @@ Kafka是由Apache软件基金会开发的一个开源流处理平台，由Scala�
 
 ActiveMQ 是由 Apache 出品的一款开源消息[中间件](https://cloud.tencent.com/product/tdmq?from_column=20065&from=20065)，旨在为应用程序提供高效、可扩展、稳定、安全的企业级消息通信。它的设计目标是提供标准的、面向消息的、多语言的应用集成消息通信中间件。ActiveMQ 实现了 JMS 1.1 并提供了很多附加的特性，比如 JMX 管理、主从管理、消息组通信、消息优先级、延迟接收消息、虚拟接收者、消息持久化、[消息队列](https://cloud.tencent.com/product/cmq?from_column=20065&from=20065)监控等等。它非常快速，支持多种语言的客户端和协议，而且可以非常容易的嵌入到企业的应用环境中，并有许多高级功能。
 
-![1714354987465-175825f0-ff44-4691-baeb-49508c5a9219.png](assets/1714354987465-175825f0-ff44-4691-baeb-49508c5a9219.png)
+![image-20240620140623485](assets/image-20240620140623485.png)
 
 **基本组件**
 
@@ -275,6 +281,12 @@ ActiveMQ Broker的主要作用是为客户端应用提供一种通信机制，�
 | 事务消息                | 不支持                                                       | 支持                                                         | 不支持                                                       | 支持                                 |
 | 管理界面                | web管理界面                                                  | web管理界面                                                  | web管理界面                                                  | web管理界面                          |
 
+## 1.5. 消息队列的问题
+
+- **系统可用性降低：** 系统可用性在某种程度上降低，为什么这样说呢？在加入 MQ 之前，你不用考虑消息丢失或者说 MQ 挂掉等等的情况，但是，引入 MQ 之后你就需要去考虑了！
+- **系统复杂性提高：** 加入 MQ 之后，你需要保证消息没有被重复消费、处理消息丢失的情况、保证消息传递的顺序性等等问题！
+- **一致性问题：** 我上面讲了消息队列可以实现异步，消息队列带来的异步确实可以提高系统响应速度。但是，万一消息的真正消费者并没有正确消费消息怎么办？这样就会导致数据不一致的情况了。
+
 # 2. Kafka
 
 ## 2.1. 概述
@@ -321,9 +333,9 @@ Apache Kafka项目旨在提供统一的，高吞吐量，低延迟的平台来�
 - **Push vs Pull** : 作为一个消息系统，kafka遵循了传统的方式，选择由Producer向Broker Push 消息，一些logging-centric system，比如Facebook的Scribe和Cloudera 的Flume,采用Push模式，事实上，push模式和pull模式各有优劣，Push模式很难适应消费速率不同的消费者，因为消息发送速率是由Broker决定的，Push模式的目的是尽可能以最快速度传递消息，但是这样很容易造成Consumer来不及处理消息，典型的表现就是拒绝服务以及网络拥塞。而pull模式可以根据Consumer的消费能力以适当的速率消费消息，对于Kafka而言，Pull模式更合适。Pull模式可以简化Broker的设计，Consumer可以自主控制消费消息的速率，同时Consumer可以自己控制消费方式（即可批量消费也可逐条消费），同时还能选择不同的提交方式从而实现不同的传输语义。
 - **Topic & Partition：**Topic在逻辑上可以被认为是一个Queue，Kafka的每条消息都必须指定一个Topic，一个Topic中的消息可以分布在集群中的多个Broker中 ，Consumer根据订阅的Topic到对应的Broker上去拉取消息。为了提升整个集群的吞吐量，物理上一个Topic可以分成多个Partition，每个Partition在磁盘上对应一个文件夹，该文件夹存放了这个Partition的所有消息文件和索引文件，假设topic1和topic2两个topic,且分别有13和19个分区，则整个集群会生成32个文件夹。每个消息文件都是一个log entry序列。
 
-![1714359714420-0f20f81a-70a6-41bb-8f02-e9f2941cda26.png](assets/1714359714420-0f20f81a-70a6-41bb-8f02-e9f2941cda26.png)
+![image-20240620142949837](assets/image-20240620142949837.png)
 
-一条完整的消息包含RECORD、offset以及message size。其中offset用来标识它在Partition中的偏移量，这个offset是逻辑值，而非实际物理偏移值，message size表示消息的大小。与消息对应的还有消息集的概念，消息集中包含一条或者多条消息，消息集不仅是存储于磁盘以及在网络上传输（Produce & Fetch）的基本形式，而且是kafka中压缩的基本单元，详细结构参考上图右侧。下面来具体描述一下消息（RECORD）格式中的各个字段，从crc32开始算起，各个字段的解释如下：
+**一条完整的消息包含RECORD、offset以及message size。**其中offset用来标识它在Partition中的偏移量，这个offset是逻辑值，而非实际物理偏移值，message size表示消息的大小。与消息对应的还有消息集的概念，消息集中包含一条或者多条消息，消息集不仅是存储于磁盘以及在网络上传输（Produce & Fetch）的基本形式，而且是kafka中压缩的基本单元，详细结构参考上图右侧。下面来具体描述一下消息（RECORD）格式中的各个字段，从crc32开始算起，各个字段的解释如下：
 
 - crc32（4B）：crc32校验值，校验范围为magic至value之间。
 - magic（1B）：消息格式版本号，0.9.X版本的magic值为0。
@@ -335,9 +347,7 @@ Apache Kafka项目旨在提供统一的，高吞吐量，低延迟的平台来�
 
 消息发送到Broker后，每条消息都被顺序写该Partition所对应的文件中，因此效率非常高，这是Kafka高吞吐率的一个很重要的保证。
 
-
-
-![1714360094031-cb71bf96-aa75-4c14-9e02-cf56d77d38b8.png](assets/1714360094031-cb71bf96-aa75-4c14-9e02-cf56d77d38b8.png)
+![image-20240620143036925](assets/image-20240620143036925.png)
 
 这里要注意，因为Kafka读取消息的时间复杂度为O(1)，即与文件大小无关，所以这里删除过期文件与提高Kafka性能无关。另外，Kafka会为每一个Consumer Group保留一些metadata信息（当前消费的消息的位置，即offset）。这个offset由Consumer控制，Consumer会在消费完一条消息后递增该offset。当然，Consumer也可将offset设成一个较小的值，重新消费一些消息。因为offet由Consumer控制，所以Kafka Broker是无状态的，它不需要标记消息是否被消费过，也不需要通过Broker去保证同一个Consumer Group只有一个Consumer能消费某一条消息，因此也就不需要锁机制，从而保证了Kafka的高吞吐率。 下图中，Consumer 1、2分属于不同的Consumer Group，Consumer 2的offset =4，Consumer 1的offset=3，这表明Consumer Group 1中的Consumer下次会从offset = 3 的message读取， Consumer Group 2中的Consumer下次会从offset = 4 的message读取。注意 这里并没有说是Consumer 1 下次会从offset = 3 的message读取，原因是Consumer 1可能会退出Group ，然后Consumer Group 1 进行重新分配分区。
 
@@ -345,47 +355,51 @@ Apache Kafka项目旨在提供统一的，高吞吐量，低延迟的平台来�
 
 ### 2.2.3. 消息发送
 
+**总结：**
+
+- **Producer发送消息到对应broker时，会根据Paritition机制选择将消息存储到哪一个Paritition，机制主要有轮询策略，随机策略，和按照key保序的策略，也可以自定义策略。**
+- 
+
 Producer其主要功能是负责向Broker发送消息，工作原理如下图所示：
 
 ![1714360722169-56520ee9-0858-4191-80c0-672dd0591ace.png](assets/1714360722169-56520ee9-0858-4191-80c0-672dd0591ace.png)
 
-Producer发送消息到对应broker时，会根据Paritition机制选择将消息存储到哪一个Paritition，如果Paritition机制设计合理，所有消息可以均匀分布到不同的Paritition里，这样就实现了负载均衡，如果一个Topic对应一个文件，那这个文件所在的机器I/O将成为这个topic的性能瓶颈，而有了Paritition之后，不同的消息可以并行写入不同的Paritition中，极大的提高了吞吐率，所谓的Paritition机制也就是Producer消息partitioning策略，具体有以下几种策略。
+**Producer发送消息到对应broker时，会根据Paritition机制选择将消息存储到哪一个Paritition**，如果Paritition机制设计合理，所有消息可以均匀分布到不同的Paritition里，这样就实现了负载均衡，如果一个Topic对应一个文件，那这个文件所在的机器I/O将成为这个topic的性能瓶颈，而有了Paritition之后，不同的消息可以并行写入不同的Paritition中，极大的提高了吞吐率，**所谓的Paritition机制也就是Producer消息partitioning策略，具体有以下几种策略。**
 
-- 轮询策略
+- **轮询策略**
 
-- 轮询策略是kafka java客户端生产者的默认策略
-- 轮询策略的负载均衡表现的非常优秀，总能保证消息最大限度的被平均分配到所有分区，默认情况下他是最合理的分区策略，如下图所示：
+  - 轮询策略是kafka java客户端生产者的默认策略
+  - 轮询策略的负载均衡表现的非常优秀，总能保证消息最大限度的被平均分配到所有分区，默认情况下他是最合理的分区策略，如下图所示：
+
+  ![image-20240620142637231](assets/image-20240620142637231.png)
+
+- **随机策略**
+  - **随机策略默认从Partition列表中随机选择一个**，随机策略的消息分布大致如下图所示。
 
 
+![image-20240620142715035](assets/image-20240620142715035.png)
 
-![1714360505101-39cd441b-9b50-4891-acfe-fa15ccaba64c.png](assets/1714360505101-39cd441b-9b50-4891-acfe-fa15ccaba64c.png)
+- **按消息键保序策略**
+  - kafka允许为每条消息定义消息键，简称key
+  - key可以是一个有明确业务含义的字符串
+  - **一旦消息被定义了key,可以保证同一Key的所有消息都放入到相同的分区里，由于每个分区下的消息处理都是顺序的，所以这个策略被称为按照消息键保序策略。**
 
-- 随机策略
+- **自定义策略**
+  - 自定义的分区策略，需要显示的配置生产者的参数partitioner.class
+  - 实现接口：org.apache.kafka,clients.producer.partitioner
 
-- 随机策略默认从Partition列表中随机选择一个，随机策略的消息分布大致如下图所示。
-
-![1714360556742-0423c2ca-bd41-4337-85b6-0beb45deaca7.png](assets/1714360556742-0423c2ca-bd41-4337-85b6-0beb45deaca7.png)
-
-- 按消息键保序策略
-
-- kafka允许为每条消息定义消息键，简称key
-- key可以是一个有明确业务含义的字符串
-- 一旦消息被定义了key,可以保证同一Key的所有消息都放入到相同的分区里，由于每个分区下的消息处理都是顺序的，所以这个策略被称为按照消息键保序策略。
-
-- 自定义策略
-
-- 自定义的分区策略，需要显示的配置生产者的参数partitioner.class
-- 实现接口：org.apache.kafka,clients.producer.partitioner
 
 ### 2.2.4. 消息消费
 
-kafka消费者API封装了对集群一系列Broker的访问，可以透明的消费topic中的数据，消费者在消费的过程中需要记录自己消费了多少数据，很多消息引擎都会把这部分信息维护在服务器端，这样做的好处是实现简单，但是有三个问题：1. Broker从此变成有状态的，会影响伸缩性；2 需要引入应答机制增加了系统的复杂度；3 由于要保存很多consumer的offset信息，必然引入复杂的数据结构，造成资源浪费。而kafka的方案是每个Consumer group保存自己的位移信息，那么只需要简单的一个整数表示位置就够了，同时可以引入Checkpoint机制定期持久化，简化了应答机制的实现。
+**总结：每个Consumer group保存自己的位移信息，表示要消费的下一条消息的offset。每个消费者根据策略来消费Partition的消息，策略主要有两种，一种是轮询策略，另一种是根据消费者的消费能力进行计算，算出每个消费者消费的分区数量。**
+
+kafka消费者API封装了对集群一系列Broker的访问，可以透明的消费topic中的数据，消费者在消费的过程中需要记录自己消费了多少数据，很多消息引擎都会把这部分信息维护在服务器端，这样做的好处是实现简单，但是有三个问题：1. Broker从此变成有状态的，会影响伸缩性；2 需要引入应答机制增加了系统的复杂度；3 由于要保存很多consumer的offset信息，必然引入复杂的数据结构，造成资源浪费。而kafka的方案是**每个Consumer group保存自己的位移信息，那么只需要简单的一个整数表示位置就够了，同时可以引入Checkpoint机制定期持久化，简化了应答机制的实现。**
 
 老版本的位移是提交到zookeeper中的，但是zookeeper其实并不是和进行大批量的读写操作，尤其是写操作。从0.9版本开始kafka提供了另一种解决方案：增加了_consumer_offsets这个topic，将offset信息写入这个topic，这样consumer就不需要依赖zookeeper。
 
-![1714361918231-15fd4fa2-9377-4869-b05c-2a2529b0f666.png](assets/1714361918231-15fd4fa2-9377-4869-b05c-2a2529b0f666.png)
+![image-20240620142803876](assets/image-20240620142803876.png)
 
-kafka的consumer group是采用pull的方式来消费消息，那么每个Consumer该消费哪个Partition的消息则需要一套严格的机制来保证，而且partition是可以水平无限扩展的，随着partition的扩展Consumer消费的partition也会重新分配，这里就涉及到kafka的消息消费分配策略，在kafka内部存在两种默认的分区分配策略：Range和RoundRobin，当以下事件发生时，Kafka将会进行一次分区分配:
+**kafka的consumer group是采用pull的方式来消费消息，那么每个Consumer该消费哪个Partition的消息则需要一套严格的机制来保证，**而且partition是可以水平无限扩展的，随着partition的扩展Consumer消费的partition也会重新分配，这里就涉及到kafka的消息消费分配策略，在kafka内部存在两种默认的分区分配策略：Range和RoundRobin，当以下事件发生时，Kafka将会进行一次分区分配:
 
 - 同一个consumer group内新增消费者
 - 消费者离开当前所属的Group,包括Shuts down或者crashes
@@ -393,32 +407,32 @@ kafka的consumer group是采用pull的方式来消费消息，那么每个Consum
 
 **Range策略**
 
-假设我们有个名为T1的主题，其中包含了5个分区，然后我们有两个消费者（C1,C2）来消费这5个分区里面的数据，而且C1的num.streams = 2,C2的num.streams = 1,（num.streams指的是消费者的消费线程个数）。Range策略是对每个主题而言的，首先对同一个主题里面的分区按照需要进行排序，并对消费者按照顺序进行排序。在这个例子中，拍完徐的分区将会是：0，1，2，3，4；消费者线程拍完序将会是C1-0,C1-1,C2-0,然后将partitions的个数除以消费者线程的总数来决定每个消费者线程消费几个分区。如果除不尽，那么前面几个消费者线程将会多消费一个分区，5个分区，3个消费者线程，5/3=1。而且除不尽，那么消费者线程C1-0,C1-1将会多消费一个分区，所以最后分区分配的结果看起来就是这样：C1-0消费0,1分区，C1-1消费2，3分区，C2-0消费4分区。
+假设我们有个名为T1的主题，其中包含了5个分区，然后我们有两个消费者（C1,C2）来消费这5个分区里面的数据，而且C1的num.streams = 2,C2的num.streams = 1,（num.streams指的是消费者的消费线程个数）。**Range策略是对每个主题而言的，首先对同一个主题里面的分区按照需要进行排序，并对消费者按照顺序进行排序。**在这个例子中，拍完序的分区将会是：0，1，2，3，4；消费者线程拍完序将会是C1-0,C1-1,C2-0,**然后将partitions的个数除以消费者线程的总数来决定每个消费者线程消费几个分区**。**如果除不尽，那么前面几个消费者线程将会多消费一个分区**，5个分区，3个消费者线程，5/3=1。而且除不尽，那么消费者线程C1-0,C1-1将会多消费一个分区，所以最后分区分配的结果看起来就是这样：C1-0消费0,1分区，C1-1消费2，3分区，C2-0消费4分区。
 
-![1714362842066-69a80290-f43b-425e-8ccb-73d2772023ac.png](assets/1714362842066-69a80290-f43b-425e-8ccb-73d2772023ac.png)
+![image-20240620142830915](assets/image-20240620142830915.png)
 
 如果增加partition，从之前的5个分区变成6个分区，那么最终的分配结果为：C1-0消费0,1分区，C1-1消费2，3分区，C2-0消费4，5分区。
 
-![1714362905394-1376fb12-3020-411d-beaf-f38e2c668022.png](assets/1714362905394-1376fb12-3020-411d-beaf-f38e2c668022.png)
+![image-20240620142852291](assets/image-20240620142852291.png)
 
-**RoundRobin策略**
+**RoundRobin（轮询）策略**
 
 **使用RoundRobin策略有两个前提条件必须满足：**
 
-- 同一个Consumer Group里面所有消费者的num.streams必须相等
+- 同一个Consumer Group里面所有消费者的num.streams必须相等：(避免数据倾斜，简化协调)
 - 每个消费者订阅的主题必须相同。
 
 假设前面提到的2个消费者的num.streams = 2,RoundRobin策略的工作原理：将所有主题的分区组成TopicAndPartition列表，然后对TopicAndPartition列表按照hashCode进行排序，在我们的例子里面，假如按照hashCode排完序的topic-partitions依次为T1-5,T1-3,T1-0,T1-2,T1-1,T1-4.我们的消费者线程排序为C1-0,C1-1,C2-0,C2-1,最后分区分配的结果为：C1-0将消费T1-5, T1-1，,C1-1将消费T1-3，T1-4分区，C2-0将消费T1-0分区，C2-1将消费T1-2分区。
 
-![1714363447090-5bf7317a-fe2e-4377-974f-96357b6c4cce.png](assets/1714363447090-5bf7317a-fe2e-4377-974f-96357b6c4cce.png)
-
-
+![image-20240620145243703](assets/image-20240620145243703.png)
 
 ### 2.2.5. 消息可靠性
 
+**总结：通过多副本策略和消息应答来保证消息可靠性。**
+
 Kafka的高可靠性的保障来源于其健壮的副本策略即partition的replication机制，kafka将为每个partition提供多个replication，同时将replication分布到整个集群的其他Broker中，具体的replication数量可以根据参数设置，这里的replication会选举一个Leader节点，其他节点为Follower节点，消息全部发送到Leader然后再通过同步算法同步到Follower节点中，当其中有replication不能工作会重新进行选举，即使部分Broker宕机仍然可以保证整个集群的高可用，消息不丢失。
 
-![1714364032870-5c7e9e99-f338-4dae-b91f-5c2b88ebe959.png](assets/1714364032870-5c7e9e99-f338-4dae-b91f-5c2b88ebe959.png)
+![image-20240620152327370](assets/image-20240620152327370.png)
 
 与此同时，当producer向leader发送数据时，可以通过request.required.acks参数来设置数据可靠性级别：
 
@@ -438,15 +452,15 @@ Kafka的高可靠性的保障来源于其健壮的副本策略即partition的rep
 
 高可用指系统无间断的执行其功能的能力，代表系统的可用性程度，kafka从0.8版本开始提供了高可用机制，可保证一个或者多个Broker宕机之后，其他Broker以及所有的partition都能继续提供服务，且存储的消息不丢失。
 
-对分布式系统来说，当集群规模上升到一定程度之后，一台或者多台机器宕机的可能性大大增加；kafka采用多机备份和消息应答确认方式解决了数据丢失问题，并通过一套失败恢复机制解决服务不可用问题。
+对分布式系统来说，当集群规模上升到一定程度之后，一台或者多台机器宕机的可能性大大增加；**kafka采用多机备份和消息应答确认方式解决了数据丢失问题，并通过一套失败恢复机制解决服务不可用问题。**
 
 ### 2.3.2. 消息备份机制
 
 #### 2.3.2.1. 消息备份
 
-Kafka允许同一个partition存在多个消息副本（Replica）,每个partition的副本通常由1个leader及0个以上的Follower组成，生产者将消息直接发往对应Partition的Leader，Follower会周期的向Leader发送同步请求，Kafka的leader机制在保障数据一致性的同时降低了消息备份的复杂度。
+Kafka允许同一个partition存在多个消息副本（Replica）,每个partition的副本通常由1个leader及0个以上的Follower组成，**生产者将消息直接发往对应Partition的Leader，Follower会周期的向Leader发送同步请求，Kafka的leader机制在保障数据一致性的同时降低了消息备份的复杂度。**
 
-同一个Partition的Replica不应存储在同一个Broker上，因为一旦该Broker宕机，对应的Partition的所有Replica都无法工作，这就达不到高可用的效果，为了做好负载均衡并提高容错能力，kafka会尽量将所有的partition以及各partition的副本均匀的分配到整个集群。
+同一个Partition的Replica不应存储在同一个Broker上，因为一旦该Broker宕机，对应的Partition的所有Replica都无法工作，这就达不到高可用的效果，**为了做好负载均衡并提高容错能力，kafka会尽量将所有的partition以及各partition的副本均匀的分配到整个集群。**
 
 #### 2.3.2.2. ISR
 
@@ -476,9 +490,9 @@ ISR中所有副本都跟上了Leader，通常只有ISR里的成员才可能被�
 - **LEO（log end offset）**:即日志末端偏移，指向了副本日志中下一条消息的位移值（即一条消息的写入位置）
 - **HW（hight watermark**）: 即已同步消息标识，因其类似于木桶效用中短板决定水位高度，故取名高水位线。
 
-所有高水位线以下消息都是已备份过的，消费者仅可消费各分区Leader高水位线以下的消息，对于任何一个副本对象而言其HW值不会大于LEO值
+所有高水位线以下消息都是已备份过的，**消费者仅可消费各分区Leader高水位线以下的消息**，对于任何一个副本对象而言其HW值不会大于LEO值
 
-Leader的HW值由IS中所有备份的LEO最小值决定（Follower在发送FetchFRequest时会在PartitionFetchInfo中携带Follower的LEO）
+Leader的HW值由ISR中所有备份的LEO最小值决定**（Follower在发送FetchFRequest时会在PartitionFetchInfo中携带Follower的LEO）**
 
 ![1714397504404-5e1709dd-6685-4eb3-b1ce-c6e9786795c1.png](assets/1714397504404-5e1709dd-6685-4eb3-b1ce-c6e9786795c1.png)
 
@@ -496,11 +510,11 @@ Kafka使用Zookeeper存储Broker，topic等状态数据，Kafka集群中的Contr
 
 由于只是Broker与其他Broker断开连接，Zookeeper还能接收到Broker0的心跳，因此Zookeeper认为Broker依然存活。则对于：
 
-![1714398470906-a8ad36ed-55ec-4e34-ba28-58f4d81bce5a.png](assets/1714398470906-a8ad36ed-55ec-4e34-ba28-58f4d81bce5a.png)
+![image-20240620151747986](assets/image-20240620151747986.png)
 
 - **partition0**
 
-Broker0中的副本为partition0的Leader，当Broker0超过replica.lag,time.max.ms没接收到Broker1，Broker2的FetchRequest请求后，Broker0选择将P0的ISR收缩到仅剩Broker0本身，并将ISR的变更同步到zookeeper，Broker0需要根据min.insync.replicas的配置决定是否继续接收生产者数据。
+Broker0中的副本为partition0的Leader，当Broker0超过replica.lag,time.max.ms没接收到Broker1，Broker2的FetchRequest请求后，Broker0选择将P0的ISR收缩到仅剩Broker0本身，并将ISR的变更同步到zookeeper，Broker0需要根据min.insync.replicas（用于控制副本同步的最小数量）的配置决定是否继续接收生产者数据。
 
 - **partition1**
 
@@ -516,7 +530,7 @@ ZooKeeper删除节点后，该节点上注册的Watcher会通知Controller，Con
 
 ​     生产者每隔60秒会从bootstrap.servers中的Broker获取最新的metadata，当发现Partition0的Leader发生变更后，会改向新Leader-Broker2发送Partition0数据。另一边，Broker0收不到ZooKeeper通知，依然认为自己是Partition0的Leader；由于Broker1、Broker2不再向Broker0发送FetchRequest请求，缺失了ISR应答的Broker0停止写入acks=all的消息，但可以继续写入acks=1的消息。在replica.lag.time.max.ms时间后，Broker0尝试向ZooKeeper发送ISR变更请求但失败了，于是不再接收生产者的消息。
 
-​      当Broker0与ZooKeeper恢复连接后，发现自己不再是Partition0的Leader，于是将本地日志截断(为了保证和Leader数据一致性)，并开始向Broker2发送FetchRequest请求。在Broker0与ZooKeeper失联期间写入Broker0的所有消息由于未在新Leader中备份，这些消息都丢失了。
+​      当Broker0与ZooKeeper恢复连接后，发现自己不再是Partition0的Leader，于是将本地日志截断(为了保证和Leader数据一致性)，并开始向Broker2发送FetchRequest请求。**在Broker0与ZooKeeper失联期间写入Broker0的所有消息由于未在新Leader中备份，这些消息都丢失了。**
 
 - **Partition1**     
 
@@ -524,7 +538,7 @@ Broker0中的副本只是作为Partition1的Follower节点，而Broker0与Broker
 
  **Broker故障恢复过程**
 
-​    Broker发当Broker出现故障与ZooKeeper断开连接后，该Broker在ZooKeeper对应的znode会自动被删除，ZooKeeper会触发Controller注册在该节点的Watcher；Controller从ZooKeeper的/brokers/ids节点上获取宕机Broker上的所有Partition(简称set_p)；Controller再从ZooKeeper的/brokers/topics获取set_p中所有Partition当前的ISR；对于宕机Broker是Leader的Partition，Controller从ISR中选择幸存的Broker作为新Leader；最后Controller通过LeaderAndIsrRequest请求向set_p中的Broker发送LeaderAndISRRequest请求。
+​    当Broker出现故障与ZooKeeper断开连接后，该Broker在ZooKeeper对应的znode会自动被删除，ZooKeeper会触发Controller注册在该节点的Watcher；Controller从ZooKeeper的/brokers/ids节点上获取宕机Broker上的所有Partition(简称set_p)；Controller再从ZooKeeper的/brokers/topics获取set_p中所有Partition当前的ISR；对于宕机Broker是Leader的Partition，Controller从ISR中选择幸存的Broker作为新Leader；最后Controller通过LeaderAndIsrRequest请求向set_p中的Broker发送LeaderAndISRRequest请求。
 
 ​    受到影响的Broker会收到Controller发送的LeaderAndIsrRequest请求后，Broker通过ReplicaManager的becomeLeaderOrFollower方法响应LeaderAndIsrRequest：新Leader会将HW更新为它的LEO值，而Follower则通过一系列策略截断log以保证数据一致性。生故障后，由Controller负责选举受影响Partition的新Leader并通知到相关Broker，具体过程可参考下图。
 
@@ -560,7 +574,7 @@ Producer生成消息发送到Broker，涉及到大量的网络传输，如果一
 
 kafka的消息是一个一个的键值对，键可以设置为默认的null，键有两个用途，可以作为消息的附加信息，也可以用来决定该消息被写入到哪个partition。Topic的数据被分为一个或者多个Partition，Partition是消息的集合，Partition是Consumer消费的最小粒度。
 
-![1714440785051-ba427e3c-c932-4cce-8659-563a764015a5.png](assets/1714440785051-ba427e3c-c932-4cce-8659-563a764015a5.png)
+![image-20240620151935050](assets/image-20240620151935050.png)
 
 Kafka通过将Topic划分为多个Partition，Producer将消息分发到多个本地Partition的消息队列中，每个Partition消息队列的消息会写入到不同的Leader节点，消息经过路由策略，被分发到不同的Partition对应的本地队列，然后再批量发送到Partition对应的Leader节点。
 
@@ -581,7 +595,7 @@ Producer先生产消息、序列化消息并压缩消息后，追加到本地的
 - 消息大小达到阈值
 - 消息等待发送的时间达到阈值
 
-Producer会为每个Partition都创建一个双端队列来缓存客户端消息，队列的每个元素是一个批记录(ProducerBatch)，批记录使用createdMs表示批记录的创建时间(批记录中第一条消息加入的时间)， topicPartion表示对应的Partition元数据。当Producer生产的消息经过序列化，会被先写入到recordsBuilder对象中。一旦队列中有批记录的大小达到阈值，就会被Sender发送到Partition对应的Leader节点；若批记录等待发送的时间达到阈值，消息也会被发送到Partition对应的Leader节点中。
+**Producer会为每个Partition都创建一个双端队列来缓存客户端消息，队列的每个元素是一个批记录(ProducerBatch)，批记录使用createdMs表示批记录的创建时间(批记录中第一条消息加入的时间)， topicPartion表示对应的Partition元数据。当Producer生产的消息经过序列化，会被先写入到recordsBuilder对象中。一旦队列中有批记录的大小达到阈值，就会被Sender发送到Partition对应的Leader节点；若批记录等待发送的时间达到阈值，消息也会被发送到Partition对应的Leader节点中**。
 
 ![1714443264886-6a3e1f1b-4e7c-4a48-a3a7-1cffcb5c9cf2.png](assets/1714443264886-6a3e1f1b-4e7c-4a48-a3a7-1cffcb5c9cf2.png)
 
@@ -657,7 +671,7 @@ Kafka的索引文件的特性：
 - 指定偏移量如果在索引文件中不存在，可以找到小于等于指定偏移量的最大偏移量。
 - 稀疏索引可以通过内存映射方式，将整个索引文件都放入内存，加快偏移量的查询。
 
-由于Broker是将消息持久化到当前日志的最后一个分段中，写入文件的方式是追加写，采用了对磁盘文件的顺序写。对磁盘的顺序写以及索引文件加快了Broker查询消息的速度。
+**由于Broker是将消息持久化到当前日志的最后一个分段中，写入文件的方式是追加写，采用了对磁盘文件的顺序写。对磁盘的顺序写以及索引文件加快了Broker查询消息的速度。**
 
 #### 2.4.2.4. 零拷贝
 
@@ -671,16 +685,16 @@ Kafka中存在大量的网络数据持久化到磁盘(Producer到Broker)和磁�
 
 
 
-- 一个读操作发生后，DMA执行了一次数据拷贝，数据从磁盘拷贝到内核空间
-- CPU将数据从内核空间拷贝至用户空间
-- 调用send()，CPU执行第三次数据考本，由CPU将数据从用户空间拷贝至内核空间（socket缓冲区）
-- send()执行结束后，DMA执行第四次数据拷贝，将数据从内核拷贝到协议引擎
-
-Linux 2.4+内核通过sendfile系统调用，提供了零拷贝，数据通过DMA拷贝到内核态buffer后，直接通过DMA拷贝到NIC buffer，无需CPU拷贝。除了减少数据拷贝外， 因为整个读文件-网络发送由一个sendfile调用完成，整个过程只有两次上下文切换，没有CPU数据拷贝，因此大大提高了性能。
+Linux 2.4+内核通过sendfile系统调用，提供了零拷贝，数据通过DMA拷贝到内核态buffer后，CPU 把内核缓冲区中的文件描述符信息（包括内核缓冲区的内存地址和偏移量）发送到 socket 缓冲区，直接通过DMA拷贝到NIC buffer，无需CPU拷贝。除了减少数据拷贝外， 因为整个读文件-网络发送由一个sendfile调用完成，整个过程只有两次上下文切换，没有CPU数据拷贝，因此大大提高了性能。
 
 ![1714447585485-920f1dd3-88f2-4741-8ca7-2e36aeef53e0.png](assets/1714447585485-920f1dd3-88f2-4741-8ca7-2e36aeef53e0.png)
 
 - sendfile()通过DMA将文件内容拷贝到一个读取缓冲区，然后由内核将数据拷贝到与输出套接字相关联的内核缓冲区。
+- 用户进程发起 sendfile 系统调用，上下文（切换 1）从用户态转向内核态
+- DMA 控制器，把数据从硬盘中拷贝到内核缓冲区。
+- CPU 将读缓冲区中数据拷贝到 socket 缓冲区
+- DMA 控制器，异步把数据从 socket 缓冲区拷贝到网卡，
+- 上下文（切换 2）从内核态切换回用户态，sendfile 调用返回。
 
 从具体实现来看，Kafka的数据传输通过TransportLayer来完成，其子类PlaintextTransportLayer通过Java NIO的FileChannel的transferTo()和transferFrom()方法实现零拷贝。transferTo()和transferFrom()并不保证一定能使用零拷贝，实际上是否能使用零拷贝与操作系统相关，如果操作系统提供sendfile这样的零拷贝系统调用，则这两个方法会通过这样的系统调用充分利用零拷贝的优势，否则并不能通过这两个方法本身实现零拷贝。
 
@@ -729,7 +743,7 @@ Linux 2.4+内核通过sendfile系统调用，提供了零拷贝，数据通过DM
 - 做好集群容灾处理，针对mafka尽量保证partition均匀分布在所有Broker中
 - 不要发送超过1M 以上的消息
 
-### 2.5.3. 重复消费
+### 2.5.3. 重复消费 
 
 现象：在使用MQ的过程中经常会遇到消息被重复消费的问题
 
@@ -757,3 +771,63 @@ Linux 2.4+内核通过sendfile系统调用，提供了零拷贝，数据通过DM
 - 按照规范创建客户端，可以采用spring bean配置创建，保证一个消费组或者生产者只有一个实例对象
 - 关注发送结果
 - 构建有效的流量监控应急预案
+
+## 2.6. 面试题
+
+### 2.6.1. Zookeeper 在 Kafka 中的作用是什么？
+
+**Broker 注册**：在 Zookeeper 上会有一个专门**用来进行 Broker 服务器列表记录**的节点。每个 Broker 在启动时，都会到 Zookeeper 上进行注册，即到 `/brokers/ids` 下创建属于自己的节点。每个 Broker 就会将自己的 IP 地址和端口等信息记录到该节点中去
+
+**Topic 注册**：在 Kafka 中，同一个**Topic 的消息会被分成多个分区**并将其分布在多个 Broker 上，**这些分区信息及与 Broker 的对应关系**也都是由 Zookeeper 在维护。比如我创建了一个名字为 my-topic 的主题并且它有两个分区，对应到 zookeeper 中会创建这些文件夹：`/brokers/topics/my-topic/Partitions/0`、`/brokers/topics/my-topic/Partitions/1`
+
+**负载均衡**：上面也说过了 Kafka 通过给特定 Topic 指定多个 Partition, 而各个 Partition 可以分布在不同的 Broker 上, 这样便能提供比较好的并发能力。 对于同一个 Topic 的不同 Partition，Kafka 会尽力将这些 Partition 分布到不同的 Broker 服务器上。当生产者产生消息后也会尽量投递到不同 Broker 的 Partition 里面。当 Consumer 消费的时候，Zookeeper 可以根据当前的 Partition 数量以及 Consumer 数量来实现动态负载均衡。
+
+### 2.6.2. 使用 Kafka 能否不引入 Zookeeper?
+
+在 Kafka 2.8 之前，Kafka 最被大家诟病的就是其重度依赖于 Zookeeper。在 Kafka 2.8 之后，引入了基于 Raft 协议的 KRaft 模式，不再依赖 Zookeeper，大大简化了 Kafka 的架构，让你可以以一种轻量级的方式来使用 Kafka。
+
+不过，要提示一下：**如果要使用 KRaft 模式的话，建议选择较高版本的 Kafka，因为这个功能还在持续完善优化中。Kafka 3.3.1 版本是第一个将 KRaft（Kafka Raft）共识协议标记为生产就绪的版本。**
+
+### 2.6.2. Kafka 消费顺序、消息丢失和重复消费
+
+- **如何保证消息顺序消费**
+
+  - 1 个 Topic 只对应一个 Partition。
+  - （推荐）发送消息的时候指定 key/Partition。
+
+- **如何保证消息不丢失**
+
+  - **生产者丢失消息**：调用`send`方法发送消息之后，消息可能因为网络问题并没有发送过去。
+
+  ```java
+  //1. 可以通过 `get()`方法获取调用结果，但是这样也让它变为了同步操作
+  SendResult<String, Object> sendResult = kafkaTemplate.send(topic, o).get();
+  if (sendResult.getRecordMetadata() != null) {
+    logger.info("生产者成功发送消息到" + sendResult.getProducerRecord().topic() + "-> " + sendRe
+                sult.getProducerRecord().value().toString());
+  }        
+  // 2. 添加回调函数的形式
+  ListenableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, o);
+          future.addCallback(result -> logger.info("生产者成功发送消息到topic:{} partition:{}的消息", result.getRecordMetadata().topic(), result.getRecordMetadata().partition()),
+                  ex -> logger.error("生产者发送消失败，原因：{}", ex.getMessage()));
+  
+  ```
+
+  - **消费者丢失消息**：当消费者拉取到了分区的某个消息之后，消费者会自动提交了 offset。自动提交的话会有一个问题，试想一下，当消费者刚拿到这个消息准备进行真正消费的时候，突然挂掉了，消息实际上并没有被消费，但是 offset 却被自动提交了。**解决办法也比较粗暴，我们手动关闭自动提交 offset，每次在真正消费完消息之后再自己手动提交 offset 。**但是，细心的朋友一定会发现，这样会带来消息被重新消费的问题。比如你刚刚消费完消息之后，还没提交 offset，结果自己挂掉了，那么这个消息理论上就会被消费两次。
+  - kafka弄丢了消息：
+  - 假如 leader 副本所在的 broker 突然挂掉，那么就要从 follower 副本重新选出一个 leader ，但是 leader 的数据还有一些没有被 follower 副本的同步的话，就会造成消息丢失。解决办法就是我们设置 **acks = all**。acks 是 Kafka 生产者(Producer) 很重要的一个参数。
+
+- **如何保证消息不重复消费**
+
+  - 消费消息服务做幂等校验，比如 Redis 的 set、MySQL 的主键等天然的幂等功能。这种方法最有效。
+
+### 2.6.3. Kafka 重试机制
+
+- 在默认配置下，当消费异常会进行重试，重试多次后会跳过当前消息，继续进行后续消息的消费，不会一直卡在当前消息。下面是一段消费的日志，可以看出当 `test-0@95` 重试多次后会被跳过。因此，即使某个消息消费异常，Kafka 消费者仍然能够继续消费后续的消息，不会一直卡在当前消息，保证了业务的正常进行。
+
+- Kafka 消费者在默认配置下**会进行最多 10 次 的重试，**每次重试的时间间隔为 0，即立即进行重试。如果在 10 次重试后仍然无法成功消费消息，则不再进行重试，消息将被视为消费失败。
+
+- 当达到最大重试次数后，数据会直接被跳过，继续向后进行。当代码修复后，如何重新消费这些重试失败的数据呢？**死信队列（Dead Letter Queue，简称 DLQ）** 是消息中间件中的一种特殊队列。它主要用于处理无法被消费者正确处理的消息，通常是因为消息格式错误、处理失败、消费超时等情况导致的消息被"丢弃"或"死亡"的情况。当消息进入队列后，消费者会尝试处理它。如果处理失败，或者超过一定的重试次数仍无法被成功处理，消息可以发送到死信队列中，而不是被永久性地丢弃。在死信队列中，可以进一步分析、处理这些无法正常消费的消息，以便定位问题、修复错误，并采取适当的措施。
+
+  
+
