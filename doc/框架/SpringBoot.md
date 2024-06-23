@@ -122,8 +122,25 @@ public @interface SpringBootConfiguration {
 
 这个是因为@SpringBootApplication注解的原因，在上一个问题中已经提到了这个注解。我们知道 @SpringBootApplication看作是 @Configuration、@EnableAutoConfiguration、@ComponentScan 注解的集合。
 
-@EnableAutoConfiguration：启用 SpringBoot 的自动配置机制
+- @EnableAutoConfiguration：启用 SpringBoot 的自动配置机制
+  - @EnableAutoConfiguration 注解通过 Spring 提供的 @Import 注解导入了AutoConfigurationImportSelector类（@Import 注解可以导入配置类或者 Bean 到当前类中）。
+  - AutoConfigurationImportSelector类中getCandidateConfigurations方法会将所有自动配置类的信息以 List 的形式返回。这些配置信息会被 Spring 容器作 bean 来管理。
 
 @ComponentScan： 扫描被@Component (@Service,@Controller)注解的 bean，注解默认会扫描该类所在的包下所有的类。
 
 @Configuration：允许在上下文中注册额外的 bean 或导入其他配置类
+
+## **Spirng Boot 常用的两种配置文件**
+
+我们可以通过 application.properties或者 application.yml 对 Spring Boot 程序进行简单的配置。如果，你不进行配置的话，就是使用的默认配置。
+
+## **什么是 YAML？YAML 配置的优势在哪里 ?**
+
+YAML 是一种人类可读的数据序列化语言。它通常用于配置文件。与属性文件相比，如果我们想要在配置文件中添加复杂的属性，YAML 文件就更加结构化，而且更少混淆。可以看出 YAML 具有分层配置数据。
+
+相比于 Properties 配置的方式，YAML 配置的方式更加直观清晰，简介明了，有层次感。但是，YAML 配置的方式有一个缺点，那就是不支持 @PropertySource 注解导入自定义的 YAML 配置。
+
+## **Spring Boot 常用的读取配置文件的方法有哪些？**
+
+我们要读取的配置文件application.yml 内容如下：
+

@@ -12,17 +12,17 @@ Spring 最核心的思想就是不重新造轮子，开箱即用，提高开发�
 
 **Spring4.x 版本**：
 
-![image-20240616202613014.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616202613014.png)
+![image-20240616202613014.png](assets/image-20240616202613014.png)
 
 **Spring5.x 版本**：
 
-![image-20240616202626572.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616202626572.png)
+![image-20240616202626572.png](assets/image-20240616202626572.png)
 
 Spring5.x 版本中 Web 模块的 Portlet 组件已经被废弃掉，同时增加了用于异步响应式处理的 WebFlux 组件。
 
 Spring 各个模块的依赖关系如下：
 
-![image-20240616202701308.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616202701308.png)
+![image-20240616202701308.png](assets/image-20240616202701308.png)
 
 #### Core Container
 
@@ -110,15 +110,15 @@ IoC 的思想就是两方之间不互相依赖，由第三方容器来管理相�
 
 在没有使用 IoC 思想的情况下，Service 层想要使用 Dao 层的具体实现的话，需要通过 new 关键字在`UserServiceImpl` 中手动 new 出 `IUserDao` 的具体实现类 `UserDaoImpl`（不能直接 new 接口类）。
 
-![image-20240616210754325.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616210754325.png)
+![image-20240616210754325.png](assets/image-20240616210754325.png)
 
 开发过程中突然接到一个新的需求，针对`IUserDao` 接口开发出另一个具体实现类。因为 Server 层依赖了`IUserDao`的具体实现，所以我们需要修改`UserServiceImpl`中 new 的对象。如果只有一个类引用了`IUserDao`的具体实现，可能觉得还好，修改起来也不是很费力气，但是如果有许许多多的地方都引用了`IUserDao`的具体实现的话，一旦需要更换`IUserDao` 的实现方式，那修改起来将会非常的头疼。
 
-![image-20240616210921488.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616210921488.png)
+![image-20240616210921488.png](assets/image-20240616210921488.png)
 
 使用 IoC 的思想，我们将对象的控制权（创建、管理）交有 IoC 容器去管理，我们在使用的时候直接向 IoC 容器 “要” 就可以了
 
-![image-20240616210934246.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616210934246.png)
+![image-20240616210934246.png](assets/image-20240616210934246.png)
 
 ### IoC 和 DI 有区别吗？
 
@@ -495,7 +495,7 @@ MVC 是一种设计模式，Spring MVC 是一款很优秀的 MVC 框架。Spring
 
 ### SpringMVC 工作原理了解吗?
 
-![image-20240616214329072.png](/Users/yuyingsi/files/资料/Note/doc/Spring/assets/image-20240616214329072.png)
+![image-20240616214329072.png](assets/image-20240616214329072.png)
 
 **流程说明（重要）：**
 
@@ -553,3 +553,343 @@ private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(1
 2. 如果不存在或者对象正在创建中，于是去 **二级缓存 `earlySingletonObjects`** 中获取；
 3. 如果还没有获取到，就去 **三级缓存 `singletonFactories`** 中获取，通过执行 `ObjectFacotry` 的 `getObject()` 就可以获取该对象，获取成功之后，从三级缓存移除，并将该对象加入到二级缓存中。
 
+以上面的循环依赖代码为例，整个解决循环依赖的流程如下：
+
+- 当 Spring 创建 A 之后，发现 A 依赖了 B ，又去创建 B，B 依赖了 A ，又去创建 A；
+- 在 B 创建 A 的时候，那么此时 A 就发生了循环依赖，由于 A 此时还没有初始化完成，因此在 **一二级缓存** 中肯定没有 A；
+- 那么此时就去三级缓存中调用 `getObject()` 方法去获取 A 的 **前期暴露的对象** ，也就是调用上边加入的 `getEarlyBeanReference()` 方法，生成一个 A 的 **前期暴露对象**；
+- 然后就将这个 `ObjectFactory` 从三级缓存中移除，并且将前期暴露对象放入到二级缓存中，那么 B 就将这个前期暴露对象注入到依赖，来支持循环依赖。
+
+**最后总结一下 Spring 如何解决三级缓存**：
+
+在三级缓存这一块，主要记一下 Spring 是如何支持循环依赖的即可，也就是如果发生循环依赖的话，就去 **三级缓存 `singletonFactories`** 中拿到三级缓存中存储的 `ObjectFactory` 并调用它的 `getObject()` 方法来获取这个循环依赖对象的前期暴露对象（虽然还没初始化完成，但是可以拿到该对象在堆中的存储地址了），并且将这个前期暴露对象放到二级缓存中，这样在循环依赖时，就不会重复初始化了！
+
+不过，这种机制也有一些缺点，比如增加了内存开销（需要维护三级缓存，也就是三个 Map），降低了性能（需要进行多次检查和转换）。并且，还有少部分情况是不支持循环依赖的，比如非单例的 bean 和`@Async`注解的 bean 无法支持循环依赖。
+
+### Spring 事务
+
+#### 编程式事务管理
+
+通过 `TransactionTemplate`或者`TransactionManager`手动管理事务，实际应用中很少使用
+
+使用`TransactionTemplate` 进行编程式事务管理的示例代码如下：
+
+```java
+@Autowired
+private TransactionTemplate transactionTemplate;
+public void testTransaction() {
+
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+
+                try {
+
+                    // ....  业务代码
+                } catch (Exception e){
+                    //回滚
+                    transactionStatus.setRollbackOnly();
+                }
+
+            }
+        });
+}
+
+```
+
+使用 `TransactionManager` 进行编程式事务管理的示例代码如下：
+
+````java
+@Autowired
+private PlatformTransactionManager transactionManager;
+
+public void testTransaction() {
+
+  TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
+          try {
+               // ....  业务代码
+              transactionManager.commit(status);
+          } catch (Exception e) {
+              transactionManager.rollback(status);
+          }
+}
+
+````
+
+#### 声明式事务管理
+
+推荐使用（代码侵入性最小），实际是通过 AOP 实现（基于`@Transactional` 的全注解方式使用最多）。
+
+使用 `@Transactional`注解进行事务管理的示例代码如下：
+
+```
+@Transactional(propagation = Propagation.REQUIRED)
+public void aMethod {
+  //do something
+  B b = new B();
+  C c = new C();
+  b.bMethod();
+  c.cMethod();
+}
+
+```
+
+### Spring 事务管理接口介绍
+
+Spring 框架中，事务管理相关最重要的 3 个接口如下：
+
+- **`PlatformTransactionManager`**：（平台）事务管理器，Spring 事务策略的核心。
+- **`TransactionDefinition`**：事务定义信息(事务隔离级别、传播行为、超时、只读、回滚规则)。
+- **`TransactionStatus`**：事务运行状态。
+
+我们可以把 **`PlatformTransactionManager`** 接口可以被看作是事务上层的管理者，而 **`TransactionDefinition`** 和 **`TransactionStatus`** 这两个接口可以看作是事务的描述。
+
+**`PlatformTransactionManager`** 会根据 **`TransactionDefinition`** 的定义比如事务超时时间、隔离级别、传播行为等来进行事务管理 ，而 **`TransactionStatus`** 接口则提供了一些方法来获取事务相应的状态比如是否新事务、是否可以回滚等等。
+
+#### PlatformTransactionManager:事务管理接口
+
+**Spring 并不直接管理事务，而是提供了多种事务管理器** 。Spring 事务管理器的接口是：**`PlatformTransactionManager`** 。
+
+通过这个接口，Spring 为各个平台如：JDBC(`DataSourceTransactionManager`)、Hibernate(`HibernateTransactionManager`)、JPA(`JpaTransactionManager`)等都提供了对应的事务管理器，但是具体的实现就是各个平台自己的事情了。
+
+`PlatformTransactionManager`接口中定义了三个方法：
+
+```java
+package org.springframework.transaction;
+
+import org.springframework.lang.Nullable;
+
+public interface PlatformTransactionManager {
+    //获得事务
+    TransactionStatus getTransaction(@Nullable TransactionDefinition var1) throws TransactionException;
+    //提交事务
+    void commit(TransactionStatus var1) throws TransactionException;
+    //回滚事务
+    void rollback(TransactionStatus var1) throws TransactionException;
+}
+
+
+```
+
+**这里多插一嘴。为什么要定义或者说抽象出来`PlatformTransactionManager`这个接口呢？**
+
+主要是因为要将事务管理行为抽象出来，然后不同的平台去实现它，这样我们可以保证提供给外部的行为不变，方便我们扩展。
+
+#### TransactionDefinition:事务属性
+
+事务管理器接口 **`PlatformTransactionManager`** 通过 **`getTransaction(TransactionDefinition definition)`** 方法来得到一个事务，这个方法里面的参数是 **`TransactionDefinition`** 类 ，这个类就定义了一些基本的事务属性
+
+**什么是事务属性呢？** 事务属性可以理解成事务的一些基本配置，描述了事务策略如何应用到方法上。
+
+事务属性包含了 5 个方面：
+
+- 隔离级别
+- 传播行为
+- 回滚规则
+- 是否只读
+- 事务超时
+
+`TransactionDefinition` 接口中定义了 5 个方法以及一些表示事务属性的常量比如隔离级别、传播行为等等。
+
+```java
+package org.springframework.transaction;
+
+import org.springframework.lang.Nullable;
+
+public interface TransactionDefinition {
+    int PROPAGATION_REQUIRED = 0;
+    int PROPAGATION_SUPPORTS = 1;
+    int PROPAGATION_MANDATORY = 2;
+    int PROPAGATION_REQUIRES_NEW = 3;
+    int PROPAGATION_NOT_SUPPORTED = 4;
+    int PROPAGATION_NEVER = 5;
+    int PROPAGATION_NESTED = 6;
+    int ISOLATION_DEFAULT = -1;
+    int ISOLATION_READ_UNCOMMITTED = 1;
+    int ISOLATION_READ_COMMITTED = 2;
+    int ISOLATION_REPEATABLE_READ = 4;
+    int ISOLATION_SERIALIZABLE = 8;
+    int TIMEOUT_DEFAULT = -1;
+    // 返回事务的传播行为，默认值为 REQUIRED。
+    int getPropagationBehavior();
+    //返回事务的隔离级别，默认值是 DEFAULT
+    int getIsolationLevel();
+    // 返回事务的超时时间，默认值为-1。如果超过该时间限制但事务还没有完成，则自动回滚事务。
+    int getTimeout();
+    // 返回是否为只读事务，默认值为 false
+    boolean isReadOnly();
+
+    @Nullable
+    String getName();
+}
+
+```
+
+#### TransactionStatus:事务状态
+
+`TransactionStatus`接口用来记录事务的状态 该接口定义了一组方法,用来获取或判断事务的相应状态信息。
+
+`PlatformTransactionManager.getTransaction(…)`方法返回一个 `TransactionStatus` 对象。
+
+**TransactionStatus 接口内容如下：**
+
+```
+public interface TransactionStatus{
+    boolean isNewTransaction(); // 是否是新的事务
+    boolean hasSavepoint(); // 是否有恢复点
+    void setRollbackOnly();  // 设置为只回滚
+    boolean isRollbackOnly(); // 是否为只回滚
+    boolean isCompleted; // 是否已完成
+}
+
+```
+
+### 事务属性详解
+
+实际业务开发中，大家一般都是使用 `@Transactional` 注解来开启事务.
+
+#### 事务传播行为
+
+**事务传播行为是为了解决业务层方法之间互相调用的事务问题**。
+
+当事务方法被另一个事务方法调用时，必须指定事务应该如何传播。例如：方法可能继续在现有事务中运行，也可能开启一个新事务，并在自己的事务中运行。
+
+在`TransactionDefinition`定义中包括了如下几个表示传播行为的常量：
+
+```
+public interface TransactionDefinition {
+    int PROPAGATION_REQUIRED = 0;
+    int PROPAGATION_SUPPORTS = 1;
+    int PROPAGATION_MANDATORY = 2;
+    int PROPAGATION_REQUIRES_NEW = 3;
+    int PROPAGATION_NOT_SUPPORTED = 4;
+    int PROPAGATION_NEVER = 5;
+    int PROPAGATION_NESTED = 6;
+    ......
+}
+
+```
+
+**1.`TransactionDefinition.PROPAGATION_REQUIRED`**
+
+使用的最多的一个事务传播行为，我们平时经常使用的`@Transactional`注解默认使用就是这个事务传播行为。如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务。也就是说：
+
+- 如果外部方法没有开启事务的话，`Propagation.REQUIRED`修饰的内部方法会新开启自己的事务，且开启的事务相互独立，互不干扰。
+- 如果外部方法开启事务并且被`Propagation.REQUIRED`的话，所有`Propagation.REQUIRED`修饰的内部方法和外部方法均属于同一事务 ，只要一个方法回滚，整个事务均回滚。
+
+**`2.TransactionDefinition.PROPAGATION_REQUIRES_NEW`**
+
+创建一个新的事务，如果当前存在事务，则把当前事务挂起。也就是说不管外部方法是否开启事务，`Propagation.REQUIRES_NEW`修饰的内部方法会新开启自己的事务，且开启的事务相互独立，互不干扰。
+
+举个例子：如果我们上面的`bMethod()`使用`PROPAGATION_REQUIRES_NEW`事务传播行为修饰，`aMethod`还是用`PROPAGATION_REQUIRED`修饰的话。如果`aMethod()`发生异常回滚，`bMethod()`不会跟着回滚，因为 `bMethod()`开启了独立的事务。但是，如果 `bMethod()`抛出了未被捕获的异常并且这个异常满足事务回滚规则的话,`aMethod()`同样也会回滚，因为这个异常被 `aMethod()`的事务管理机制检测到了。
+
+**3.`TransactionDefinition.PROPAGATION_NESTED`**:
+
+如果当前存在事务，就在嵌套事务内执行；如果当前没有事务，就执行与`TransactionDefinition.PROPAGATION_REQUIRED`类似的操作。也就是说：
+
+- 在外部方法开启事务的情况下，在内部开启一个新的事务，作为嵌套事务存在。
+- 如果外部方法无事务，则单独开启一个事务，与 `PROPAGATION_REQUIRED` 类似。
+
+#### 事务隔离级别
+
+`TransactionDefinition` 接口中定义了五个表示隔离级别的常量：
+
+```
+public interface TransactionDefinition {
+    ......
+    int ISOLATION_DEFAULT = -1;
+    int ISOLATION_READ_UNCOMMITTED = 1;
+    int ISOLATION_READ_COMMITTED = 2;
+    int ISOLATION_REPEATABLE_READ = 4;
+    int ISOLATION_SERIALIZABLE = 8;
+    ......
+}
+
+```
+
+**`TransactionDefinition.ISOLATION_DEFAULT`** :使用后端数据库默认的隔离级别，MySQL 默认采用的 `REPEATABLE_READ` 隔离级别 Oracle 默认采用的 `READ_COMMITTED` 隔离级别.
+
+**`TransactionDefinition.ISOLATION_READ_UNCOMMITTED`** :最低的隔离级别，使用这个隔离级别很少，因为它允许读取尚未提交的数据变更，**可能会导致脏读、幻读或不可重复读**
+
+**`TransactionDefinition.ISOLATION_READ_COMMITTED`** : 允许读取并发事务已经提交的数据，**可以阻止脏读，但是幻读或不可重复读仍有可能发生**
+
+**`TransactionDefinition.ISOLATION_REPEATABLE_READ`** : 对同一字段的多次读取结果都是一致的，除非数据是被本身事务自己所修改，**可以阻止脏读和不可重复读，但幻读仍有可能发生。**
+
+**`TransactionDefinition.ISOLATION_SERIALIZABLE`** : 最高的隔离级别，完全服从 ACID 的隔离级别。所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，**该级别可以防止脏读、不可重复读以及幻读**。但是这将严重影响程序的性能。通常情况下也不会用到该级别。
+
+#### 事务超时属性
+
+所谓事务超时，就是指一个事务所允许执行的最长时间，如果超过该时间限制但事务还没有完成，则自动回滚事务。在 `TransactionDefinition` 中以 int 的值来表示超时时间，其单位是秒，默认值为-1，这表示事务的超时时间取决于底层事务系统或者没有超时时间。
+
+#### 事务回滚规则
+
+这些规则定义了哪些异常会导致事务回滚而哪些不会。默认情况下，事务只有遇到运行期异常（`RuntimeException` 的子类）时才会回滚，`Error` 也会导致事务回滚，但是，在遇到检查型（Checked）异常时不会回滚。
+
+### @Transactional 注解使用详解
+
+#### [`@Transactional` 的作用范围](#transactional-的作用范围)
+
+1. **方法**：推荐将注解使用于方法上，不过需要注意的是：**该注解只能应用到 public 方法上，否则不生效。**
+2. **类**：如果这个注解使用在类上的话，表明该注解对该类中所有的 public 方法都生效。
+3. **接口**：不推荐在接口上使用。
+
+#### [`@Transactional` 的常用配置参数](https://javaguide.cn/system-design/framework/spring/spring-transaction.html#transactional-的常用配置参数)
+
+`@Transactional`注解源码如下，里面包含了基本事务属性的配置：
+
+```java
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+public @interface Transactional {
+
+  @AliasFor("transactionManager")
+  String value() default "";
+
+  @AliasFor("value")
+  String transactionManager() default "";
+
+  Propagation propagation() default Propagation.REQUIRED;
+
+  Isolation isolation() default Isolation.DEFAULT;
+
+  int timeout() default TransactionDefinition.TIMEOUT_DEFAULT;
+
+  boolean readOnly() default false;
+
+  Class<? extends Throwable>[] rollbackFor() default {};
+
+  String[] rollbackForClassName() default {};
+
+  Class<? extends Throwable>[] noRollbackFor() default {};
+
+  String[] noRollbackForClassName() default {};
+
+}
+
+```
+
+#### `@Transactional` 事务注解原理
+
+我们知道，`@Transactional` 的工作机制是基于 AOP 实现的，AOP 又是使用动态代理实现的。如果目标对象实现了接口，默认情况下会采用 JDK 的动态代理，如果目标对象没有实现了接口,会使用 CGLIB 动态代理。
+
+如果一个类或者一个类中的 public 方法上被标注`@Transactional` 注解的话，Spring 容器就会在启动的时候为其创建一个代理类，在调用被`@Transactional` 注解的 public 方法的时候，实际调用的是，`TransactionInterceptor` 类中的 `invoke()`方法。这个方法的作用就是在目标方法之前开启事务，方法执行过程中如果遇到异常的时候回滚事务，方法调用完成之后提交事务。
+
+#### Spring AOP 自调用问题
+
+当一个方法被标记了`@Transactional` 注解的时候，Spring 事务管理器只会在被其他类方法调用的时候生效，而不会在一个类中方法调用生效。
+
+这是因为 Spring AOP 工作原理决定的。因为 Spring AOP 使用动态代理来实现事务的管理，它会在运行的时候为带有 `@Transactional` 注解的方法生成代理对象，并在方法调用的前后应用事物逻辑。如果该方法被其他类调用我们的代理对象就会拦截方法调用并处理事务。但是在一个类中的其他方法内部调用的时候，我们代理对象就无法拦截到这个内部调用，因此事务也就失效了。
+
+#### `@Transactional` 的使用注意事项总结
+
+`@Transactional` 注解只有作用到 public 方法上事务才生效，不推荐在接口上使用；
+
+避免同一个类中调用 `@Transactional` 注解的方法，这样会导致事务失效；
+
+正确的设置 `@Transactional` 的 `rollbackFor` 和 `propagation` 属性，否则事务可能会回滚失败;
+
+被 `@Transactional` 注解的方法所在的类必须被 Spring 管理，否则不生效；
+
+底层使用的数据库必须支持事务机制，否则不生效；

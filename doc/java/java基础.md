@@ -2460,6 +2460,349 @@ aliSmsService.send("java");
 1. **灵活性**：动态代理更加灵活，不需要必须实现接口，可以直接代理实现类，并且可以不需要针对每个目标类都创建一个代理类。另外，静态代理中，接口一旦新增加方法，目标对象和代理对象都要进行修改，这是非常麻烦的！
 2. **JVM 层面**：静态代理在编译时就将接口、实现类、代理类这些都变成了一个个实际的 class 文件。而动态代理是在运行时动态生成类字节码，并加载到 JVM 中的。
 
+## 介绍
+
+### 静态代理
+
+假如现在我们面临一个需求，把一个项目中所有访问数据库的方法都记录日志。最直接的方法是修改所有代码，在每个方法里面都加入写日志代码：
+
+```java
+public class Dao {
+	User findUserbyId(int id) {
+		// 业务代码
+		xxx;
+		// 加入写日志代码
+		xxx;
+	}
+	
+}
+```
+
+但是这样工作量会很大，并且模块之间是耦合的，比如下次的需求是修改记录日志的内容，那么又要去修改所有业务代码，显然这种方法是不可取的。
+
+
+**如果不可以修改业务代码呢？**
+
+很容易就想到静态代理，写**代理类**对业务代码进行调用，我们用老师教学生举例子：
+
+```java
+/**
+* 老师接口，老师可以教学生
+*/
+public interface Teacher { 
+    void teach();
+}
+/**
+* 老师接口的实现类，具体实现 teach() 方法
+*/
+public class RealTeacher implements Teacher {
+    @Override
+    public void teach() {
+        System.out.println("I am a teacher, I am teaching!");
+    }
+}
+/**
+* 老师代理对象，增强 teach() 方法
+*/
+public class TeacherProxy implements Teacher {
+    Teacher teacher = new RealTeacher();
+    @Override
+    public void teach() {
+    	// 这里 dosomething() 可以实现一些代理类的功能
+    	dosomething();
+    	// 这里执行 RealTeacher 的 teach() 方法
+    	teacher.teach();
+        dosomething();
+    }
+}
+/**
+* 测试代理类
+*/
+public class ProxyTest {
+    public static void main(String args[]) {
+    	Teacher teacher = new TeacherProxy();
+    	// 这里执行代理类的 teach() 方法
+    	teacher.teach();
+    }
+}
+```
+
+用图示表示上面静态代理的代码，可以描述为：
+
+![img](https://cdn.nlark.com/yuque/0/2024/png/42819892/1718536788901-c6977ea9-dff3-4063-85bb-ff7764448da8.png)
+
+从图片和代码可以看出，这里只是用一个新对象去包含原来的 RealTeacher 对象，看似多此一举，但是确实一个不改变原来的代码，对方法进行增强的好办法。但是，如果我们要增强很多方法，比如文章开头的例子，需要对所有访问数据库的方法添加日志记录，如果用静态代理，要为每一个对象编写代理累，代码量十分庞大，也难以维护。
+
+### 动态代理
+
+既然为每一个需要代理的对象（下文通称为目标对象）都编写相应的代理类很麻烦，那么能不能不写死代理对象和目标对象，只写一个代理对象就可以使用不同的目标对象呢？
+
+答案是可以的，就是用动态代理。动态代理的代理对象不依赖于目标对象，不和目标对象耦合。其原理是把目标对象的类型信息（比如接口）作为参数，利用 Java 支持的反射来创建代理对象，这样，就解除了代理对象和目标对象的耦合，一个代理对象可以适用一些列的目标对象。用图表示为：
+
+![img](https://cdn.nlark.com/yuque/0/2024/png/42819892/1718536844272-ef655963-cb05-4039-99dd-6e3b157869b3.png)
+
+如上图所示，目标对象作为一个参数，动态代理得到这个参数之后分成三步走：
+
+1. 获得目标对象的接口信息和类加载器，然后根据这两个信息来反射得到代理类的 Class
+2. 获得目标对象的 Class
+3. 根据1 2两步获得的接口，代理类 Class，目标类 Class 实例化一个代理对象
+
+这样， 就创建了一个代理对象。从图中可以看出，动态代理并没有和目标对象绑定，而是把目标对象作为一个参数。
+
+JDK 提供了 java.lang.reflect.InvocationHandler 接口和 java.lang.reflect.Proxy 类来实现上述反射等功能，其中 java.lang.reflect.InvovationHandler 接口用于绑定目标对象需要增强的方法，java.lang.reflect.Proxy 提供静态方法 NewProxyInstance() 用于创建一个代理类实例，这样，这个代理类实习就被创建出来并且通过嵌入 InvocationHandler 绑定了目标类的方法。
+
+上面的静态代理代码的例子改成动态代理：
+
+```java
+/**
+ * 老师接口，老师可以教学生
+ */
+public interface Teacher {
+    void teach();
+}
+/**
+ * 老师接口的实现类，具体实现 teach() 方法
+ */
+public class RealTeacher implements Teacher {
+    @Override
+    public void teach() {
+        // 老师正在教书
+        System.out.println("I am a teacher, I am teaching!");
+    }
+}
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+/**
+ * 代理类，根据接口等信息动态地创建代理对象，其中 MyProxy 是 InvocationHandler 的实现类，用于绑定方法
+ */
+public class MyProxy implements InvocationHandler {
+    // tar用于接收目标类的参数
+    private Object tar;
+
+    // 绑定目标类，根据目标类的类加载器和接口创建代理对象，并返回
+    public Object bind(Object target) {
+        this.tar = target;
+        // 注意：此处代码返回代理类
+        return Proxy.newProxyInstance(tar.getClass().getClassLoader(), 
+        tar.getClass().getInterfaces(), this);
+    }
+    // invoke() 方法用于方法的增强
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        Object result = null;
+        // 执行一些方法
+        System.out.println("Do something before");
+
+        // 目标类的方法执行，这里实际上是执行目标对象的方法，
+        // 也就是 bind(Object target)参数 object target 的方法
+        result = method.invoke(tar, args);
+
+        System.out.println("Do something after");
+        return result;
+    }
+}
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+public class ProxyTest {
+    public static void main(String[] args) throws Throwable {
+        MyProxy proxy = new MyProxy();
+
+        // 传入目标对象，进行绑定
+        Teacher teacher = (Teacher)proxy.bind(new RealTeacher());
+
+        // 执行代理对象的方法
+        teacher.teach();
+    }
+}
+```
+
+目标对象 RealTeacher 可以看成是一个纯粹的参数，不和代理类耦合。
+
+在应用的时候，可以把具体实现过程忽略，把Teacher teacher = (Teacher)getProxy(new RealTeacher());看成一个黑箱，它输入一个目标类作为参数，返回一个实现了 Teacher 接口的代理类。到此为止，我们成功使用了动态代理，在没有和目标类 RealTeacher 绑定的情况下，创建了一个代理类，增强了 teach() 方法。
+
+#### 进一步深究代理类 teacher，invoke()
+
+为了进一步探究生成的代理类 teacher 到底是什么一个情况，我们输出 teach 的一些类型信息：
+
+```java
+    public static void main(String[] args) throws Throwable {
+        // 这里能清楚地看到，目标对象 RealTeacher 是一个纯粹的参数
+        Teacher teacher = (Teacher)getProxy(new RealTeacher());
+        // teacher 是接口 Teacher 的一个实现类，
+        // 完全从多态的角度也能想到执行的实际上是 RealTeacher 的 teach() 方法
+        teacher.teach();
+
+        System.out.println(teacher.getClass().getSuperclass());//输出是class java.lang.reflect.Proxy
+
+        Class<?>[] interfaces = teacher.getClass().getInterfaces();
+
+        for(Class<?> i : interfaces){
+            System.out.println(i);// 输出是interface Teacher
+        }
+
+        Method[] methods = teacher.getClass().getDeclaredMethods();
+
+        for (Method method : methods) {
+            System.out.println(method);
+            // 输出是：
+            // public final boolean com.sun.proxy.$Proxy0.equals(java.lang.Object)
+            // public final java.lang.String com.sun.proxy.$Proxy0.toString()
+            // public final int com.sun.proxy.$Proxy0.hashCode()
+            // public final void com.sun.proxy.$Proxy0.teach() 
+
+        }
+    }
+```
+
+由上述输出可以发现，
+
+Teacher teacher = (Teacher)getProxy(new RealTeacher());
+
+创建的代理类 teacher 实际是名字是 $Proxy0，它父类 Proxy，实现了 Teacher 接口，实现了 teach() 方法，所以代码
+
+```java
+teacher.teach();
+```
+
+理所当然可以执行。
+
+但是，我们知道代码 ***teacher.teach();\*** 最终执行了invoke()方法，**那么这个teach()方法到底怎么和invoke()有关联的呢？**
+
+
+我们打开 teach 的方法 Proxy.newProxyInstance()源码的注释，关键的是这几行：
+
+```java
+ * Returns a proxy instance for the specified interfaces
+ * that dispatches method invocations to the specified invocation
+ * handler.
+
+@param   loader the class loader to define the proxy class
+     * @param   interfaces the list of interfaces for the proxy class
+     *          to implement
+     * @param   h the invocation handler to dispatch method invocations to
+     * @return  a proxy instance with the specified invocation handler of a
+     *          proxy class that is defined by the specified class loader
+     *          and that implements the specified interfaces
+```
+
+再看 Proxy 类的注释：
+
+```java
+* {@code Proxy} provides static methods for creating objects that act like instances
+ * of interfaces but allow for customized method invocation.
+ * To create a proxy instance for some interface {@code Foo}:
+ * <pre>{@code
+ *     InvocationHandler handler = new MyInvocationHandler(...);
+ *     Foo f = (Foo) Proxy.newProxyInstance(Foo.class.getClassLoader(),
+ *                                          new Class<?>[] { Foo.class },
+ *                                          handler);
+ * }</pre>
+ *
+ * <p>
+ * A <em>proxy class</em> is a class created at runtime that implements a specified
+ * list of interfaces, known as <em>proxy interfaces</em>. A <em>proxy instance</em>
+ * is an instance of a proxy class.
+ *
+ * Each proxy instance has an associated <i>invocation handler</i>
+ * object, which implements the interface {@link InvocationHandler}.
+ * A method invocation on a proxy instance through one of its proxy
+ * interfaces will be dispatched to the {@link InvocationHandler#invoke
+ * invoke} method of the instance's invocation handler, passing the proxy
+ * instance, a {@code java.lang.reflect.Method} object identifying
+ * the method that was invoked, and an array of type {@code Object}
+ * containing the arguments.  The invocation handler processes the
+ * encoded method invocation as appropriate and the result that it
+ * returns will be returned as the result of the method invocation on
+ * the proxy instance.
+ *
+```
+
+由注释发现，Proxy.newProxyInstance()方法返回一个代理对象的实例，这个实例是和一个特殊的 InvocationHandler 相关的，再回看我们写的代码:
+
+![img](https://cdn.nlark.com/yuque/0/2024/png/42819892/1718537562395-93d2efe2-2dda-4241-8eb5-8d8279b2e545.png)
+
+我们实例化的匿名内部类 InvocationHandler 正是有 invoke() 方法，所以刚才的问题: **那么这个teach()方法到底怎么和invoke()有关联的呢？**是因为代理对象实例 teacher 的父类是 Proxy，由 Proxy 去和我们实例化的匿名内部类 InvocationHandler 去关联
+
+再看实例对象 teacher（也就是 $Proxy0 ）的反编译代码
+
+```java
+public final class $Proxy0 extends Proxy implements Subject {  
+    private static Method m1;  
+    private static Method m0;  
+    private static Method m3;  
+    private static Method m2;  
+  
+    static {  
+        try {  
+            m1 = Class.forName("java.lang.Object").getMethod("equals",  
+                    new Class[] { Class.forName("java.lang.Object") });  
+  
+            m0 = Class.forName("java.lang.Object").getMethod("hashCode",  
+                    new Class[0]);  
+  
+            m3 = Class.forName("***.RealSubject").getMethod("request",  
+                    new Class[0]);  
+  
+            m2 = Class.forName("java.lang.Object").getMethod("toString",  
+                    new Class[0]);  
+  
+        } catch (NoSuchMethodException nosuchmethodexception) {  
+            throw new NoSuchMethodError(nosuchmethodexception.getMessage());  
+        } catch (ClassNotFoundException classnotfoundexception) {  
+            throw new NoClassDefFoundError(classnotfoundexception.getMessage());  
+        }  
+    } //static  
+  
+    public $Proxy0(InvocationHandler invocationhandler) {  
+        super(invocationhandler);  
+    }  
+  
+    @Override  
+    public final boolean equals(Object obj) {  
+        try {  
+            return ((Boolean) super.h.invoke(this, m1, new Object[] { obj })) .booleanValue();  
+        } catch (Throwable throwable) {  
+            throw new UndeclaredThrowableException(throwable);  
+        }  
+    }  
+  
+    @Override  
+    public final int hashCode() {  
+        try {  
+            return ((Integer) super.h.invoke(this, m0, null)).intValue();  
+        } catch (Throwable throwable) {  
+            throw new UndeclaredThrowableException(throwable);  
+        }  
+    }  
+  
+    public final void teach() {  
+        try {  
+            super.h.invoke(this, m3, null);  
+            return;  
+        } catch (Error e) {  
+        } catch (Throwable throwable) {  
+            throw new UndeclaredThrowableException(throwable);  
+        }  
+    }  
+  
+    @Override  
+    public final String toString() {  
+        try {  
+            return (String) super.h.invoke(this, m2, null);  
+        } catch (Throwable throwable) {  
+            throw new UndeclaredThrowableException(throwable);  
+        }  
+    }  
+}  
+```
+
+也验证了当执行 teacher.teach() 的时候，也就是执行 $Proxy0.teach() 的时候，会执行 super.h.invoke()，也就是执行父类 Proxy 的 invoke()，而父类 Proxy 是和 InvocationHandler 是关联的，总结为：
+
+**teacher.teach() --> $Proxy0.teach() --> super.h.invoke() --> proxy.invoke() --> invocationHandler.invoke()**
+
 # 其他重要知识点
 
 ## 序列化与反序列化
