@@ -43,7 +43,7 @@
 
 - **[mysql](./doc/存储/Mysql.html)**
 - **[redis](./doc/存储/redis.html)**
-- **[Guava Cache](./doc/存储/Guava Cache.html)**
+- **[GuavaCache](./doc/存储/Guava Cache.html)**
 
 #### 开发工具
 
