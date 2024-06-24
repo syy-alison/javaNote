@@ -60,25 +60,51 @@ https://blog.csdn.net/weixin_38569499/article/details/103720524
 
 Guava Cache的数据结构，和JDK 1.7版本的ConcurrentHashMap非常相似：
 
-- 分段segment：最外层是分段segment，用于控制最大的写并发数量；
+- 分段segment：最外层是分段segment，用于控制最大的写并发数量，每一个Segment使用了单独的锁，其实每个Segment继承了ReentrantLock，对Segment的写操作需要先拿到锁。每个Segment由一个table和5个队列组成。
 - 分段内的数组table：每个分段内维护一个原子引用数组table，根据元素的hash值确定在数组中的位置；
 - 数组内的链表：数组的任一元素，存放的都是一个链表，用于解决哈希碰撞的情况；
 - 和JDK 1.7的ConcurrentHashMap的一个重要区别在于，Guava Cache的数组中始终存放的都是链表，不会变成红黑树。
 
-#### 1.1 分段segment的数量
 
-  分段segment是缓存工具Cache的最外层结构。一个缓存可能会有多个segment，所有segment的内容之和，表示整个缓存。
 
-  segmentCount的值主要取决于建造者类CacheBuilder的参数***并发级别concurrencyLevel***，另外还会受到CacheBuilder参数***最大加权值maximumWeight***。
+- LocalCache为Guava Cache的核心类，包含一个Segment数组组成
+- Segement数组的长度决定了cache的并发数
+- 每一个Segment使用了单独的锁，其实每个Segment继承了ReentrantLock，对Segment的写操作需要先拿到锁
+  每个Segment由一个table和5个队列组成
+- 1个table：
 
-    分段数量segmentCount的取值规则简述：
+  - AtomicReferenceArray<ReferenceEntry<K, V>> table：AtomicReferenceArray可以用原子方式更新其元素的对象引用数组
+    ReferenceEntry<k,v>
+  - ReferenceEntry是Guava Cache中对一个键值对节点的抽象，每个ReferenceEntry数组项都是一条ReferenceEntry链。并且一个ReferenceEntry包含key、hash、valueReference、next字段（单链）Guava Cache使用ReferenceEntry接口来封装一个键值对，而用ValueReference来封装Value值
+- 5个队列：
 
-segmentCount是2的整数倍；
-segmentCount在允许的取值范围内取最大值；
-concurrencyLevel的约束：1/2 * segmentCount满足：小于concurrencyLevel ；
-maxWeight的约束：如果maxWeight < 0（不限制缓存最大容量），则对segmentCount无影响；如果设置了有效的maxWeight，则 1/2 * segmentCount 小于等于1/20 * maxWeight。
-————————————————
+  - ReferenceQueue keyReferenceQueue ： 值键引用队列，记录被垃圾回收、且需要被内部清理的节点；
+  - ReferenceQueue valueReferenceQueue ：值引用队列，记录被垃圾回收、且需要被内部清理的值；
+  - ConcurrentlinkedQueue<ReferenceEntry<k,v>> recencyQueue : LRU队列，当segment上达到临界值发生写操作时该队列会移除数据
+  - Queue<ReferenceEntry<K, V>> writeQueue：写队列，按照写入时间进行排序的元素队列，写入一个元素时会把它加入到队列尾部
+  - Queue<ReferenceEntry<K, V>> accessQueue：访问队列，按照访问时间进行排序的元素队列，访问(包括写入)一个元素时会把它加入到队列尾部
 
-                            版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
 
-原文链接：https://blog.csdn.net/weixin_38569499/article/details/103720524
+### 2. 并发控制
+
+  并发控制是通过参数并发级别concurrencyLevel设置的，还会受参数最大加权值maximumWeight的影响，最终通过分段segment的数量来起作用。分段数量的计算规则参考上述1.1分段segment的数量。
+
+    缓存的写操作（包括显式的写操作，以及读操作触发的缓存失效、缓存加载等）是需要加锁的，而加锁的基本单元是segment。类Segment是Java的重入锁ReentrantLock的子类。在写操作前后会分别调用ReentrantLock的lock()和unlock()方法，进行加锁和解锁操作。
+### 3、缓存淘汰
+
+#### 3.1 用户显式清除的两种场景
+
+  如果用户通过invalite或invalidateAll等方法主动失效了相应缓存，或者通过put方法使用新值替换了旧的缓存值，这两种情况表示缓存是被用户显式清除掉的，而不是被缓存内部清除的。
+
+#### 3.2 被垃圾回收淘汰
+
+  Guava Cache支持将配置的引用强度设置成软引用和弱引用，以避免缓存过多导致内存溢出等问题。
+
+#### 3.3 超时淘汰
+
+- 访问后超时会设置一个访问时间，每次读取缓存内容或者设置缓存的值，都会刷新访问的时间；如果下一次访问的时候，发现访问时长超时，会直接让缓存失效。访问超时通过方法expireAfterAccess进行设置；
+- 写后超时会设置一个写时间，每次设置缓存的值，都会刷新写时间；如果下一次访问的时候，发现访问时长超时，会直接让缓存失效。访问超时通过方法expireAfterWrite进行设置。
+
+#### 3.4 容量超限淘汰（LRU算法）
+
+ 如果缓存设置了最大容量（maximumSize，或者maximumWeight），则在添加缓存的时候，会去判断当前容量是否已经超限。如果缓存容量超限，则会通过LRU算法，淘汰掉最久没有访问的缓存。

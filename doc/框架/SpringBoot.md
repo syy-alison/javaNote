@@ -1,6 +1,8 @@
 # 概述
 
-## Spring的缺点
+#### Spring的缺点
+
+**配置文件比较多。**
 
 
 Spring 是重量级企业开发框架 Enterprise JavaBean（EJB） 的替代品，Spring 为企业级 Java 开发提供了一种相对简单的方法，通过 依赖注入 和 面向切面编程 ，用简单的 Java 对象（Plain Old Java Object，POJO） 实现了 EJB 的功能
@@ -13,13 +15,13 @@ Spring 是重量级企业开发框架 Enterprise JavaBean（EJB） 的替代品�
 
 光配置这些 XML 文件都够我们头疼的了，占用了我们大部分时间和精力。除此之外，相关库的依赖非常让人头疼，不同库之间的版本冲突也非常常见。
 
-## **为什么要有 SpringBoot?**
+#### **为什么要有 SpringBoot?**
 
-Spring 旨在简化 J2EE 企业应用程序开发。Spring Boot 旨在简化 Spring 开发（减少配置文件，开箱即用！）。
+**Spring 旨在简化 J2EE 企业应用程序开发。Spring Boot 旨在简化 Spring 开发（减少配置文件，开箱即用！）。**
 
 ![image-20240618215140744.png](assets/image-20240618215140744.png)
 
-## **使用 Spring Boot 的主要优点**
+#### **使用 Spring Boot 的主要优点**
 
 - 开发基于 Spring 的应用程序很容易。
 - Spring Boot 项目所需的开发或工程时间明显减少，通常会提高整体生产力。
@@ -30,7 +32,7 @@ Spring 旨在简化 J2EE 企业应用程序开发。Spring Boot 旨在简化 Spr
 - Spring Boot 提供命令行接口(CLI)工具，用于开发和测试 Spring Boot 应用程序，如 Java 或 Groovy。
 - Spring Boot 提供了多种插件，可以使用内置工具(如 Maven 和 Gradle)开发和测试 Spring Boot 应用程序。
 
-## **什么是 Spring Boot Starters?**
+#### **什么是 Spring Boot Starters?**
 
 Spring Boot Starters 是一系列依赖关系的集合，因为它的存在，项目的依赖之间的关系对我们来说变的更加简单了。
 
@@ -43,7 +45,7 @@ Spring Boot Starters 是一系列依赖关系的集合，因为它的存在，�
 </dependency>
 ```
 
-## **Spring Boot 支持哪些内嵌 Servlet 容器？**
+#### **Spring Boot 支持哪些内嵌 Servlet 容器？**
 
 Spring Boot 支持以下嵌入式 Servlet 容器:
 
@@ -57,7 +59,7 @@ Spring Boot 支持以下嵌入式 Servlet 容器:
 
 这就是你为什么可以通过直接像运行 普通 Java 项目一样运行 SpringBoot 项目。这样的确省事了很多，方便了我们进行开发，降低了学习难度。
 
-##  **如何在 Spring Boot 应用程序中使用 Jetty 而不是 Tomcat?**
+####  **如何在 Spring Boot 应用程序中使用 Jetty 而不是 Tomcat?**
 
 Spring Boot （spring-boot-starter-web）使用 Tomcat 作为默认的嵌入式 servlet 容器, 如果你想使用 Jetty 的话只需要修改pom.xml(Maven)或者build.gradle(Gradle)就可以了。
 
@@ -80,7 +82,23 @@ Spring Boot （spring-boot-starter-web）使用 Tomcat 作为默认的嵌入式 
 </dependency>
 ```
 
-## **介绍一下@SpringBootApplication 注解**
+#### SpringBoot启动流程
+
+
+
+![image-20240623230640065](assets/image-20240623230640065.png)
+
+![image-20240623230842098](assets/image-20240623230842098.png)
+
+![image-20240623230803836](assets/image-20240623230803836.png)
+
+![image-20240623230938252](assets/image-20240623230938252.png)
+
+![image-20240623231013158](assets/image-20240623231013158.png)
+
+![image-20240623231040678](assets/image-20240623231040678.png)
+
+#### **介绍一下@SpringBootApplication 注解**
 
 ```java
 
@@ -116,31 +134,154 @@ public @interface SpringBootConfiguration {
 
 - @ComponentScan： 扫描被@Component (@Service,@Controller)注解的 bean，注解默认会扫描该类所在的包下所有的类。
 
-- @Configuration：允许在上下文中注册额外的 bean 或导入其他配置类
+- @Configuration：允许在上下文中注册额外的 bean 或导入其他配置类，@Configuration就是用来直接或间接注册Bean到IOC容器中的
 
-## **Spring Boot 的自动配置是如何实现的?**
+#### **Spring Boot 的自动配置是如何实现的?**
 
-这个是因为@SpringBootApplication注解的原因，在上一个问题中已经提到了这个注解。我们知道 @SpringBootApplication看作是 @Configuration、@EnableAutoConfiguration、@ComponentScan 注解的集合。
+```java
+@SpringBootApplication
+public class EntryApplication {
 
-- @EnableAutoConfiguration：启用 SpringBoot 的自动配置机制
-  - @EnableAutoConfiguration 注解通过 Spring 提供的 @Import 注解导入了AutoConfigurationImportSelector类（@Import 注解可以导入配置类或者 Bean 到当前类中）。
-  - AutoConfigurationImportSelector类中getCandidateConfigurations方法会将所有自动配置类的信息以 List 的形式返回。这些配置信息会被 Spring 容器作 bean 来管理。
+    public static void main(String[] args) {
+        SpringApplication.run(EntryApplication.class, args);
+    }
+}
 
-@ComponentScan： 扫描被@Component (@Service,@Controller)注解的 bean，注解默认会扫描该类所在的包下所有的类。
+```
 
-@Configuration：允许在上下文中注册额外的 bean 或导入其他配置类
+@SpringBootApplication 注解流程图
 
-## **Spirng Boot 常用的两种配置文件**
+![image-20240623222717398](assets/image-20240623222717398.png)
+
+**Spring Boot的自动装配实际上是从`META-INF/spring.factories`文件中获取到对应的需要进行自动装配的类，并生成相应的Bean对象，然后将它们交给Spring容器进行管理**。
+
+- 在Spring Boot项目中有一个注解@SpringBootApplication，这个注解是对三个注解进行了封装：@SpringBootConfiguration、@EnableAutoConfiguration、@ComponentScan
+  - @Configuration：允许在上下文中注册额外的 bean 或导入其他配置类，@Configuration就是用来直接或间接注册Bean到IOC容器中的
+  - @ComponentScan： 扫描被@Component (@Service,@Controller)注解的 bean，注解默认会扫描该类所在的包下所有的类。
+  - @EnableAutoConfiguration是实现自动化配置的核心注解。该注解通过@Import注解导入AutoConfigurationImportSelector，这个类实现了一个导入器接口ImportSelector。在该接口中存在一个方法selectImports，
+    - 该方法的返回值是一个数组，数组中存储的就是要被导入到spring容器中的类的全类名。在AutoConfigurationImportSelector类中重写了这个方法,
+    - 该方法内部就是读取了项目的classpath路径下META-INF/spring.factories文件中的所配置的类的全类名。
+      在这些配置类中所定义的Bean会根据条件注解@Conditional所指定的条件来决定是否需要将其导入到Spring容器中。
+
+
+![image-20240623231347045](assets/image-20240623231347045.png)
+
+![image-20240623231400966](assets/image-20240623231400966.png)
+
+![image-20240623231539816](assets/image-20240623231539816.png)
+
+#### **Spirng Boot 常用的两种配置文件**
 
 我们可以通过 application.properties或者 application.yml 对 Spring Boot 程序进行简单的配置。如果，你不进行配置的话，就是使用的默认配置。
 
-## **什么是 YAML？YAML 配置的优势在哪里 ?**
+#### 什么是 YAML？YAML 配置的优势在哪里 ?
 
 YAML 是一种人类可读的数据序列化语言。它通常用于配置文件。与属性文件相比，如果我们想要在配置文件中添加复杂的属性，YAML 文件就更加结构化，而且更少混淆。可以看出 YAML 具有分层配置数据。
 
 相比于 Properties 配置的方式，YAML 配置的方式更加直观清晰，简介明了，有层次感。但是，YAML 配置的方式有一个缺点，那就是不支持 @PropertySource 注解导入自定义的 YAML 配置。
 
-## **Spring Boot 常用的读取配置文件的方法有哪些？**
+####  Spring Boot 常用的读取配置文件的方法有哪些？
 
 我们要读取的配置文件application.yml 内容如下：
+
+```
+wuhan2020: 2020年初武汉爆发了新型冠状病毒，疫情严重，但是，我相信一切都会过去！武汉加油！中国加油！
+
+library:
+  location: 湖北武汉加油中国加油
+  books:
+    - name: 天才基本法
+      description: 二十二岁的林朝夕在父亲确诊阿尔茨海默病这天，得知自己暗恋多年的校园男神裴之即将出国深造的消息——对方考取的学校，恰是父亲当年为她放弃的那所。
+    - name: 时间的秩序
+      description: 为什么我们记得过去，而非未来？时间“流逝”意味着什么？是我们存在于时间之内，还是时间存在于我们之中？卡洛·罗韦利用诗意的文字，邀请我们思考这一亘古难题——时间的本质。
+    - name: 了不起的我
+      description: 如何养成一个新习惯？如何让心智变得更成熟？如何拥有高质量的关系？ 如何走出人生的艰难时刻？
+```
+
+- 通过 @value 读取比较简单的配置信息，需要注意的是 @value这种方式是不被推荐的，Spring 比较建议的是下面几种读取配置信息的方式。
+
+  ```java
+  @Value("${wuhan2020}")
+  String wuhan2020;
+  ```
+
+- 通过@ConfigurationProperties读取并与 bean 绑定， LibraryProperties 类上加了 @Component 注解，我们可以像使用普通 bean 一样将其注入到类中使用。
+
+  ```
+  
+  
+  import lombok.Getter;
+  import lombok.Setter;
+  import lombok.ToString;
+  import org.springframework.boot.context.properties.ConfigurationProperties;
+  import org.springframework.context.annotation.Configuration;
+  import org.springframework.stereotype.Component;
+  
+  import java.util.List;
+  
+  @Component
+  @ConfigurationProperties(prefix = "library")
+  @Setter
+  @Getter
+  @ToString
+  class LibraryProperties {
+      private String location;
+      private List<Book> books;
+  
+      @Setter
+      @Getter
+      @ToString
+      static class Book {
+          String name;
+          String description;
+      }
+  ```
+
+- @PropertySource读取指定的 properties 文件
+
+```java
+
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
+
+@Component
+@PropertySource("classpath:website.properties")
+@Getter
+@Setter
+class WebSite {
+    @Value("${url}")
+    private String url;
+}
+```
+
+#### **Spring Boot 加载配置文件的优先级了解么？**
+
+![image-20240623232558166](assets/image-20240623232558166.png)
+
+
+
+#### **Spring Boot 中如何实现定时任务 ?**
+
+们使用 @Scheduled 注解就能很方便地创建一个定时任务。单纯依靠 @Scheduled 注解 还不行，我们还需要在 SpringBoot 中我们只需要在启动类上加上@EnableScheduling 注解，这样才可以启动定时任务。@EnableScheduling 注解的作用是发现注解 @Scheduled 的任务并在后台执行该任务。
+
+```java
+@Component
+public class ScheduledTasks {
+    private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+
+    /**
+     * fixedRate：固定速率执行。每5秒执行一次。
+     */
+    @Scheduled(fixedRate = 5000)
+    public void reportCurrentTimeWithFixedRate() {
+        log.info("Current Thread : {}", Thread.currentThread().getName());
+        log.info("Fixed Rate Task : The time is now {}", dateFormat.format(new Date()));
+    }
+}
+
+```
 

@@ -914,98 +914,6 @@ class Philosopher extends Thread {
 }
 ```
 
-### 同步模式之顺序控制
-
-比如，必须先 2 后 1 打印 
-
-```java
-// 用来同步的对象
-static Object obj = new Object();
-// t2 运行标记， 代表 t2 是否执行过
-static boolean t2runed = false;
-
-public static void main(String[] args) {
-    
-    Thread t1 = new Thread(() -> {
-        synchronized (obj) {
-            // 如果 t2 没有执行过
-            while (!t2runed) { 
-                try {
-                    // t1 先等一会
-                    obj.wait(); 
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        System.out.println(1);
-    });
-    
-    Thread t2 = new Thread(() -> {
-        System.out.println(2);
-        synchronized (obj) {
-            // 修改运行标记
-            t2runed = true;
-            // 通知 obj 上等待的线程（可能有多个，因此需要用 notifyAll）
-            obj.notifyAll();
-        }
-    });
-    
-    t1.start();
-    t2.start();
-}
-```
-
-### 交替输出
-
-线程 1 输出 a 5 次，线程 2 输出 b 5 次，线程 3 输出 c 5 次。现在要求输出 abcabcabcabcabc 怎么实现 
-
-```java
-class SyncWaitNotify {
-    private int flag;
-    private int loopNumber;
-    
-    public SyncWaitNotify(int flag, int loopNumber) {
-        this.flag = flag;
-        this.loopNumber = loopNumber;
-    }
-    
-    public void print(int waitFlag, int nextFlag, String str) {
-        for (int i = 0; i < loopNumber; i++) {
-            synchronized (this) {
-                while (this.flag != waitFlag) {
-                    try {
-                        this.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                
-                System.out.print(str);
-                flag = nextFlag;
-                this.notifyAll();
-            }
-        }
-    }
-}
-
-
-SyncWaitNotify syncWaitNotify = new SyncWaitNotify(1, 5);
-
-new Thread(() -> {
-    syncWaitNotify.print(1, 2, "a");
-}).start();
-
-new Thread(() -> {
-    syncWaitNotify.print(2, 3, "b");
-}).start();
-
-new Thread(() -> {
-    syncWaitNotify.print(3, 1, "c");
-}).start();
-
-```
-
 ## 3.3 ReadWriteLock锁
 - `ReadWriteLock`是一个接口，`ReentrantReadWriteLock`是它的实现类;
 - `WriteLock`(写锁)独占锁,`ReadLock`(读锁)共享锁。
@@ -1169,6 +1077,13 @@ public void actor1(I_Result r){
   - 由于没有手动删除entry数组以及currentThread依然运行，这样还存在强引用链currenthread ref----->tthread--->threadLocalMap---->entry--->value，value不会被回收，而这块value就永远不会被访问到就可能造成内存泄漏。
 - 就算是强引用也会造成内存泄漏的，所以弱引用不是造成内存泄漏的根本原因。
   - 根本原因是threadLocalMap的生命周期和thread一样长，如果没有手动删除对应的key就会导致内存泄漏。
+- 为什么要弱引用
+  - ThreadlocalMap是和线程绑定在一起的，如果这样线程没有被销毁，而我们又已经不会再某个threadlocal引用，那么key-value的键值对就会一直在map中存在，这对于程序来说，就出现了**内存泄漏**。为了避免这种情况，只要将key设置为弱引用，那么当发生GC的时候，就会自动将弱引用给清理掉，也就是说：假如某个用户A执行方法时产生了一份threadlocalA，然后在很长一段时间都用不到threadlocalA时，作为弱引用，它会在下次[垃圾回收](https://so.csdn.net/so/search?q=垃圾回收&spm=1001.2101.3001.7020)时被清理掉。
+  - 而且ThreadLocalMap在内部的**set，get和扩容时都会清理掉泄漏的Entry**，[内存泄漏](https://so.csdn.net/so/search?q=内存泄漏&spm=1001.2101.3001.7020)完全没必要过于担心。
+
+- value为什么不设置成弱引用？
+  - value本身没有被引用，如果设置成弱引用就会被垃圾回收掉。
+
 
 ## ThreadLocal的实现过程
 
@@ -1787,9 +1702,9 @@ AQS 是一个用来构建锁和同步器的框架，使用 AQS 能简单且高�
 
 https://blog.csdn.net/u010445301/article/details/125590758
 
-**AQS 核心思想是，如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线程，并且将共享资源设置为锁定状态。如果被请求的共享资源被占用，那么就需要一套线程阻塞等待以及被唤醒时锁分配的机制，这个机制 AQS 是用 CLH 队列锁实现的，即将暂时获取不到锁的线程加入到队列中。**
+**AQS 核心思想是，如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线程，并且将共享资源设置为锁定状态。如果被请求的共享资源被占用，那么就需要一套线程阻塞等待以及被唤醒时锁分配的机制，这个机制 AQS 是用 CLH 队列锁实现的，即将暂时获取不到锁的线程加入到队列中。**CLH：Craig、Landin and Hagersten队列，是单向链表，AQS中的队列是CLH变体的虚拟双向队列（FIFO），AQS是通过将每条请求共享资源的线程封装成一个节点来实现锁的分配。暂时获取不到锁的线程将被加入到该队列中。AQS 将每条请求共享资源的线程封装成一个 CLH 队列锁的一个结点（Node）来实现锁的分配。在 CLH 队列锁中，一个节点表示一个线程，它保存着线程的引用（thread）、 当前节点在队列中的状态（waitStatus）、前驱节点（prev）、后继节点（next）。
 
-> CLH(Craig,Landin,and Hagersten)队列是一个虚拟的双向队列（虚拟的双向队列即不存在队列实例，仅存在结点之间的关联关系）。AQS 是将每条请求共享资源的线程封装成一个 CLH 锁队列的一个结点（Node）来实现锁的分配。
+> 
 
 ![image-20240617173250683.png](assets/image-20240617173250683.png)
 
@@ -1815,6 +1730,8 @@ protected final boolean compareAndSetState(int expect, int update) {
         return unsafe.compareAndSwapInt(this, stateOffset, expect, update);
 }
 ```
+
+以可重入的互斥锁 `ReentrantLock` 为例，它的内部维护了一个 `state` 变量，用来表示锁的占用状态。`state` 的初始值为 0，表示锁处于未锁定状态。当线程 A 调用 `lock()` 方法时，会尝试通过 `tryAcquire()` 方法独占该锁，并让 `state` 的值加 1。如果成功了，那么线程 A 就获取到了锁。如果失败了，那么线程 A 就会被加入到一个等待队列（CLH 队列）中，直到其他线程释放该锁。假设线程 A 获取锁成功了，释放锁之前，A 线程自己是可以重复获取此锁的（`state` 会累加）。这就是可重入性的体现：一个线程可以多次获取同一个锁而不会被阻塞。但是，这也意味着，一个线程必须释放与获取的次数相同的锁，才能让 `state` 的值回到 0，也就是让锁恢复到未锁定状态。只有这样，其他等待的线程才能有机会获取该锁。
 
 ### AQS对资源的共享方式
 
@@ -2054,7 +1971,191 @@ new Philosopher("赫拉克利特", c4, c5).start();
 new Philosopher("阿基米德", c5, c1).start();
 ```
 
+## 生产者消费者
+
+要点 
+
+- 与前面的保护性暂停中的 GuardObject 不同，不需要产生结果和消费结果的线程一一对应 
+- 消费队列可以用来平衡生产和消费的线程资源 
+- 生产者仅负责产生结果数据，不关心数据该如何处理，而消费者专心处理结果数据 
+- 消息队列是有容量限制的，满时不会再加入数据，空时不会再消耗数据 
+- JDK 中各种阻塞队列，采用的就是这种模式
+
+```java
+class Message {
+    private int id;
+    private Object message;
+    public Message(int id, Object message) {
+        this.id = id;
+        this.message = message;
+    }
+    public int getId() {
+        return id;
+    }
+    public Object getMessage() {
+        return message;
+    }
+}
+
+class MessageQueue {
+    private LinkedList<Message> queue;
+    private int capacity;
+    
+    public MessageQueue(int capacity) {
+        this.capacity = capacity;
+        queue = new LinkedList<>();
+    }
+    
+    public Message take() {
+        synchronized (queue) {
+            while (queue.isEmpty()) {
+                log.debug("没货了, wait");
+                try {
+                    queue.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            Message message = queue.removeFirst();
+            queue.notifyAll();
+            return message;
+        }
+    }
+    
+    public void put(Message message) {
+        synchronized (queue) {
+            while (queue.size() == capacity) {
+                log.debug("库存已达上限, wait");
+                try {
+                    queue.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            queue.addLast(message);
+            queue.notifyAll();
+        }
+    }
+}
+```
+
+```java
+MessageQueue messageQueue = new MessageQueue(2);
+
+// 4 个生产者线程, 下载任务
+for (int i = 0; i < 4; i++) {
+    int id = i;
+    new Thread(() -> {
+        try {
+            log.debug("download...");
+            List<String> response = Downloader.download();
+            log.debug("try put message({})", id);
+            messageQueue.put(new Message(id, response));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }, "生产者" + i).start();
+}
+
+// 1 个消费者线程, 处理结果
+new Thread(() -> {
+    while (true) {
+        Message message = messageQueue.take();
+        List<String> response = (List<String>) message.getMessage();
+        log.debug("take message({}): [{}] lines", message.getId(), response.size());
+    }
+}, "消费者").start();
+```
+
+## 同步模式之顺序控制
+
+比如，必须先 2 后 1 打印 
+
+```java
+// 用来同步的对象
+static Object obj = new Object();
+// t2 运行标记， 代表 t2 是否执行过
+static boolean t2runed = false;
+
+public static void main(String[] args) {
+    
+    Thread t1 = new Thread(() -> {
+        synchronized (obj) {
+            // 如果 t2 没有执行过
+            while (!t2runed) { 
+                try {
+                    // t1 先等一会
+                    obj.wait(); 
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        System.out.println(1);
+    });
+    
+    Thread t2 = new Thread(() -> {
+        System.out.println(2);
+        synchronized (obj) {
+            // 修改运行标记
+            t2runed = true;
+            // 通知 obj 上等待的线程（可能有多个，因此需要用 notifyAll）
+            obj.notifyAll();
+        }
+    });
+    
+    t1.start();
+    t2.start();
+}
+```
+
+## 交替输出
+
+线程 1 输出 a 5 次，线程 2 输出 b 5 次，线程 3 输出 c 5 次。现在要求输出 abcabcabcabcabc 怎么实现 
+
+```java
+class SyncWaitNotify {
+    private int flag;
+    private int loopNumber;
+    
+    public SyncWaitNotify(int flag, int loopNumber) {
+        this.flag = flag;
+        this.loopNumber = loopNumber;
+    }
+    
+    public void print(int waitFlag, int nextFlag, String str) {
+        for (int i = 0; i < loopNumber; i++) {
+            synchronized (this) {
+                while (this.flag != waitFlag) {
+                    try {
+                        this.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                
+                System.out.print(str);
+                flag = nextFlag;
+                this.notifyAll();
+            }
+        }
+    }
+}
 
 
+SyncWaitNotify syncWaitNotify = new SyncWaitNotify(1, 5);
 
+new Thread(() -> {
+    syncWaitNotify.print(1, 2, "a");
+}).start();
+
+new Thread(() -> {
+    syncWaitNotify.print(2, 3, "b");
+}).start();
+
+new Thread(() -> {
+    syncWaitNotify.print(3, 1, "c");
+}).start();
+
+```
 
