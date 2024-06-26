@@ -1283,6 +1283,95 @@ map.put(key, anotherValue);
 
 很多同学可能会说了，这种情况也能加锁同步呀！确实可以，但不建议使用加锁的同步机制，违背了使用 `ConcurrentHashMap` 的初衷。在使用 `ConcurrentHashMap` 的时候，尽量使用这些原子性的复合操作方法来保证原子性。
 
+# ArrayBlockingQueue
+
+Java 阻塞队列的历史可以追溯到 JDK1.5 版本，当时 Java 平台增加了 `java.util.concurrent`，即我们常说的 JUC 包，其中包含了各种并发流程控制工具、并发容器、原子类等。这其中自然也包含了我们这篇文章所讨论的阻塞队列。
+
+为了解决高并发场景下多线程之间数据共享的问题，JDK1.5 版本中出现了 `ArrayBlockingQueue` 和 `LinkedBlockingQueue`，它们是带有生产者-消费者模式实现的并发容器。其中，`ArrayBlockingQueue` 是有界队列，即添加的元素达到上限之后，再次添加就会被阻塞或者抛出异常。而 `LinkedBlockingQueue` 则由链表构成的队列，正是因为链表的特性，所以 `LinkedBlockingQueue` 在添加元素上并不会向 `ArrayBlockingQueue` 那样有着较多的约束，所以 `LinkedBlockingQueue` 设置队列是否有界是可选的(注意这里的无界并不是指可以添加任务数量的元素，而是说队列的大小默认为 `Integer.MAX_VALUE`，近乎于无限大)。
+
+阻塞队列就是典型的生产者-消费者模型，它可以做到以下几点:
+
+1. 当阻塞队列数据为空时，所有的消费者线程都会被阻塞，等待队列非空。
+2. 当生产者往队列里填充数据后，队列就会通知消费者队列非空，消费者此时就可以进来消费。
+3. 当阻塞队列因为消费者消费过慢或者生产者存放元素过快导致队列填满时无法容纳新元素时，生产者就会被阻塞，等待队列非满时继续存放元素。
+4. 当消费者从队列中消费一个元素之后，队列就会通知生产者队列非满，生产者可以继续填充数据了。
+
+```java
+public class ProducerConsumerExample {
+
+    public static void main(String[] args) throws InterruptedException {
+
+        // 创建一个大小为 5 的 ArrayBlockingQueue
+        ArrayBlockingQueue<Integer> queue = new ArrayBlockingQueue<>(5);
+
+        // 创建生产者线程
+        Thread producer = new Thread(() -> {
+            try {
+                for (int i = 1; i <= 10; i++) {
+                    // 向队列中添加元素，如果队列已满则阻塞等待
+                    queue.put(i);
+                    System.out.println("生产者添加元素：" + i);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        });
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        // 创建消费者线程
+        Thread consumer = new Thread(() -> {
+            try {
+                int count = 0;
+                while (true) {
+
+                    // 从队列中取出元素，如果队列为空则阻塞等待
+                    int element = queue.take();
+                    System.out.println("消费者取出元素：" + element);
+                    ++count;
+                    if (count == 10) {
+                        break;
+                    }
+                }
+
+                countDownLatch.countDown();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        });
+
+        // 启动线程
+        producer.start();
+        consumer.start();
+
+        // 等待线程结束
+        producer.join();
+        consumer.join();
+
+        countDownLatch.await();
+
+        producer.interrupt();
+        consumer.interrupt();
+    }
+
+}
+
+```
+
+### ArrayBlockingQueue 是什么？它的特点是什么？
+
+`ArrayBlockingQueue` 是 `BlockingQueue` 接口的有界队列实现类，常用于多线程之间的数据共享，底层采用数组实现，从其名字就能看出来了。
+
+`ArrayBlockingQueue` 的容量有限，一旦创建，容量不能改变。
+
+为了保证线程安全，`ArrayBlockingQueue` 的并发控制采用可重入锁 `ReentrantLock` ，不管是插入操作还是读取操作，都需要获取到锁才能进行操作。并且，它还支持公平和非公平两种方式的锁访问机制，默认是非公平锁。
+
+`ArrayBlockingQueue` 虽名为阻塞队列，但也支持非阻塞获取和新增元素（例如 `poll()` 和 `offer(E e)` 方法），只是队列满时添加元素会抛出异常，队列为空时获取的元素为 null，一般不会使用。
+
+
+
 #  对比
 
 ## ArrayList 和 Array（数组）的区别
@@ -1386,6 +1475,30 @@ ArrayList：
 - `HashSet`的底层是`HashMap`,线程不安全，可以存null值。
 - `LinkedHashSet`是`HashSet`的子类，能够按照添加的顺序遍历。
 - `TreeSet`底层使用红黑树，能够按照添加元素的顺序进行遍历，排序的方式有自然排序和定制排序。
+
+### ArrayBlockingQueue 和 LinkedBlockingQueue 有什么区别？
+
+`ArrayBlockingQueue` 和 `LinkedBlockingQueue` 是 Java 并发包中常用的两种阻塞队列实现，它们都是线程安全的。不过，不过它们之间也存在下面这些区别：
+
+- 底层实现：`ArrayBlockingQueue` 基于数组实现，而 `LinkedBlockingQueue` 基于链表实现。
+- 是否有界：`ArrayBlockingQueue` 是有界队列，必须在创建时指定容量大小。`LinkedBlockingQueue` 创建时可以不指定容量大小，默认是`Integer.MAX_VALUE`，也就是无界的。但也可以指定队列大小，从而成为有界的。
+- 锁是否分离： `ArrayBlockingQueue`中的锁是没有分离的，即生产和消费用的是同一个锁；`LinkedBlockingQueue`中的锁是分离的，即生产用的是`putLock`，消费是`takeLock`，这样可以防止生产者和消费者线程之间的锁争夺。
+- 内存占用：`ArrayBlockingQueue` 需要提前分配数组内存，而 `LinkedBlockingQueue` 则是动态分配链表节点内存。这意味着，`ArrayBlockingQueue` 在创建时就会占用一定的内存空间，且往往申请的内存比实际所用的内存更大，而`LinkedBlockingQueue` 则是根据元素的增加而逐渐占用内存空间。
+
+### ArrayBlockingQueue 的实现原理是什么？
+
+`ArrayBlockingQueue` 的实现原理主要分为以下几点（这里以阻塞式获取和新增元素为例介绍）：
+
+- `ArrayBlockingQueue` 内部维护一个定长的数组用于存储元素。
+- 通过使用 `ReentrantLock` 锁对象对读写操作进行同步，即通过锁机制来实现线程安全。
+- 通过 `Condition` 实现线程间的等待和唤醒操作。
+
+这里再详细介绍一下线程间的等待和唤醒具体的实现（不需要记具体的方法，面试中回答要点即可）：
+
+- 当队列已满时，生产者线程会调用 `notFull.await()` 方法让生产者进行等待，等待队列非满时插入（非满条件）。
+- 当队列为空时，消费者线程会调用 `notEmpty.await()`方法让消费者进行等待，等待队列非空时消费（非空条件）。
+- 当有新的元素被添加时，生产者线程会调用 `notEmpty.signal()`方法唤醒正在等待消费的消费者线程。
+- 当队列中有元素被取出时，消费者线程会调用 `notFull.signal()`方法唤醒正在等待插入元素的生产者线程。
 
 ## 红黑树的特点
 
