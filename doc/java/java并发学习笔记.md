@@ -790,7 +790,7 @@ if(table.get("key") == null){//1
 
 #### java对象的布局
 
-![对象在内存中的布局.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/对象在内存中的布局.png)
+![对象在内存中的布局.png](images/对象在内存中的布局.png)
 
 - 对象头：当一个线程尝试访问sychronzied修饰的代码块时，它首先要获得锁，这个锁时存在锁的对象头中。
 - 实例数据：类中定义的成员变量。
@@ -848,15 +848,15 @@ if(table.get("key") == null){//1
 
 - 判断当前对象是否处于无锁状态(hashcode,0,01)，如果是，创建**锁记录**（Lock Record）对象，每个线程的栈帧都会包含一个锁记录对象，内部可以存储锁定对象的mark word（不再一开始就使用Monitor）。
 
-![轻量级锁.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/轻量级锁.png)
+![轻量级锁.png](images/轻量级锁.png)
 
 - 让锁记录中的Object reference指向锁对象（Object），并尝试用cas去替换Object中的mark word，将此mark word放入lock record中保存.
 
-![轻量级锁1.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/轻量级锁1.png)
+![轻量级锁1.png](images/轻量级锁1.png)
 
 - 如果cas替换成功，则将Object的对象头替换为**锁记录的地址**和**状态 00（轻量级锁状态）**，并由该线程给对象加锁.
 
-![轻量级锁2.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/轻量级锁2.png)
+![轻量级锁2.png](images/轻量级锁2.png)
 
 - 如果失败则判断当前对象的Mark Word是否指向当前线程的栈帧.
   - 如果是则表示当前线程已经持有当前对象的锁，则进入sychronized锁重入，再加一条Lock Record作为重入的计数，但是此刻锁记录是null. 
@@ -1889,7 +1889,7 @@ j=...
 
 - 事实上，现代处理器会设计为一个时钟周期完成一条执行时间长的 CPU 指令。为什么这么做呢？可以想到指令还可以再划分成一个个更小的阶段，例如，每条指令都可以分为： **取指令 - 指令译码 - 执行指令 - 内存访问 - 数据写回** 这5 个阶段
 
-![指令重排优化.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/指令重排优化.png)
+![指令重排优化.png](images/指令重排优化.png)
 
 - 在不改变程序结果的前提下，这些指令的各个阶段可以通过**重排序**和**组合**来实现**指令级并行**
 - 指令重排的前提是，重排指令**不能影响结果**，例如
