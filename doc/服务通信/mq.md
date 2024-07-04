@@ -289,6 +289,8 @@ ActiveMQ Broker的主要作用是为客户端应用提供一种通信机制，�
 
 # 2. Kafka
 
+https://geekdaxue.co/read/haofeiyu@kafka/ok8sod
+
 ## 2.1. 概述
 
 Apache Kafka项目旨在提供统一的，高吞吐量，低延迟的平台来处理实时数据流，Kafka可以通过Kafka Connect连接到外部系统，并提供了Kafka Streams（一种Java流处理库），Kafka使用经过优化的二进制TCP协议，并使用抽象"message set"将消息分组以减少网络开销并且可以支撑更大的网络数据包，从而使Kafka可以将突发的随机消息写入流转化为线性写入。
@@ -358,7 +360,6 @@ Apache Kafka项目旨在提供统一的，高吞吐量，低延迟的平台来�
 **总结：**
 
 - **Producer发送消息到对应broker时，会根据Paritition机制选择将消息存储到哪一个Paritition，机制主要有轮询策略，随机策略，和按照key保序的策略，也可以自定义策略。**
-- 
 
 Producer其主要功能是负责向Broker发送消息，工作原理如下图所示：
 
@@ -540,7 +541,7 @@ Broker0中的副本只是作为Partition1的Follower节点，而Broker0与Broker
 
 ​    当Broker出现故障与ZooKeeper断开连接后，该Broker在ZooKeeper对应的znode会自动被删除，ZooKeeper会触发Controller注册在该节点的Watcher；Controller从ZooKeeper的/brokers/ids节点上获取宕机Broker上的所有Partition(简称set_p)；Controller再从ZooKeeper的/brokers/topics获取set_p中所有Partition当前的ISR；对于宕机Broker是Leader的Partition，Controller从ISR中选择幸存的Broker作为新Leader；最后Controller通过LeaderAndIsrRequest请求向set_p中的Broker发送LeaderAndISRRequest请求。
 
-​    受到影响的Broker会收到Controller发送的LeaderAndIsrRequest请求后，Broker通过ReplicaManager的becomeLeaderOrFollower方法响应LeaderAndIsrRequest：新Leader会将HW更新为它的LEO值，而Follower则通过一系列策略截断log以保证数据一致性。生故障后，由Controller负责选举受影响Partition的新Leader并通知到相关Broker，具体过程可参考下图。
+​    受到影响的Broker会收到Controller发送的LeaderAndIsrRequest请求后，Broker通过ReplicaManager的becomeLeaderOrFollower方法响应LeaderAndIsrRequest：新Leader会将HW更新为它的LEO值，而Follower则通过一系列策略截断log以保证数据一致性。发生故障后，由Controller负责选举受影响Partition的新Leader并通知到相关Broker，具体过程可参考下图。
 
 #### 2.3.3.2. Controller故障
 
@@ -564,7 +565,7 @@ Broker0中的副本只是作为Partition1的Follower节点，而Broker0与Broker
 
 ## 2.4. 高性能
 
-Producer生产消息会涉及大量的消息网络传输，如果Producer每生产一个消息就发送到Broker会造成大量的网络消耗，严重影响到Kafka的性能。为了解决这个问题，Kafka使用了批量发送的方式，Broker在持久化消息，读取消息的时候，如果采用传统的IO读写方式，会严重影响Kafka的性能，为了解决这个问题，Kafka采用了顺序写+零拷贝的方式。下面分别从批量发送消息，持久化消息，零拷贝三个角度介绍Kafka如何提高性能。
+Producer生产消息会涉及大量的消息网络传输，如果Producer每生产一个消息就发送到Broker会造成大量的网络消耗，严重影响到Kafka的性能。为了解决这个问题，Kafka使用了批量发送的方式，Broker在持久化消息，读取消息的时候，如果采用传统的IO读写方式，会严重影响Kafka的性能，为了解决这个问题，Kafka采用了顺序写+零拷贝的方式。下面分别**从批量发送消息，持久化消息，零拷贝**三个角度介绍Kafka如何提高性能。
 
 ### 2.4.1. 批量发送消息
 

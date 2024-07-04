@@ -2,7 +2,7 @@
 
 
 
-# 
+
 
 [TOC]
 
@@ -1360,11 +1360,7 @@ public class ThreadPoolExecutorDemo {
 - **`corePoolSize` :** 核心线程数线程数定义了最小可以同时运行的线程数量。
 - **`maximumPoolSize` :** 当队列中存放的任务达到队列容量的时候，当前可以同时运行的线程数量变为最大线程数。
 - **`workQueue`:** 当新任务来的时候会先判断当前运行的线程数量是否达到核心线程数，如果达到的话，新任务就会被存放在队列中。
-  - 容量为 `Integer.MAX_VALUE` 的 `LinkedBlockingQueue`（无界队列）：`FixedThreadPool` 和 `SingleThreadExector` 。`FixedThreadPool`最多只能创建核心线程数的线程（核心线程数和最大线程数相等），`SingleThreadExector`只能创建一个线程（核心线程数和最大线程数都是 1），二者的任务队列永远不会被放满。
-  - `SynchronousQueue`（同步队列）：`CachedThreadPool` 。`SynchronousQueue` 没有容量，不存储元素，目的是保证对于提交的任务，如果有空闲线程，则使用空闲线程来处理；否则新建一个线程来处理任务。也就是说，`CachedThreadPool` 的最大线程数是 `Integer.MAX_VALUE` ，可以理解为线程数是可以无限扩展的，可能会创建大量线程，从而导致 OOM。
-  - `DelayedWorkQueue`（延迟阻塞队列）：`ScheduledThreadPool` 和 `SingleThreadScheduledExecutor` 
-  - `DelayedWorkQueue` 的内部元素并不是按照放入的时间排序，而是会按照延迟的时间长短对任务进行排序，内部采用的是“堆”的数据结构，可以保证每次出队的任务都是当前队列中执行时间最靠前的。`DelayedWorkQueue` 添加元素满了之后会自动扩容原来容量的 1/2，即永远不会阻塞，最大扩容可达 `Integer.MAX_VALUE`，所以最多只能创建核心线程数的线程
-
+  
 - **`keepAliveTime`**:当线程池中的线程数量大于 `corePoolSize` 的时候，如果这时没有新的任务提交，核心线程外的线程不会立即销毁，而是会等待，直到等待的时间超过了 `keepAliveTime`才会被回收销毁；
 - **`unit`** : `keepAliveTime` 参数的时间单位。
 - **`threadFactory`** :executor 创建新线程的时候会用到。
@@ -1434,7 +1430,7 @@ public class ThreadPoolExecutorDemo {
 ##### `isTerminated()` 和 `isShutdown()`
 
 - **`isShutDown`** 当调用 `shutdown()` 方法后返回为 true。
-- **`isTerminated`** 当调用 `shutdown()` 方法后，并且所有提交的任务完成后返回为 true。\
+- **`isTerminated`** 当调用 `shutdown()` 方法后，并且所有提交的任务完成后返回为 true。
 
 # 八、Future
 
@@ -1845,7 +1841,9 @@ public class CountDownLatchExample1 {
 
 **用来控制多个线程互相等待，只有当多个线程都到达时，这些线程才会继续执行。**
 
-和 CountdownLatch 相似，都是通过维护计数器来实现的。线程执行 await() 方法之后计数器会减 1，并进行等待，直到计数器为 0，所有调用 await() 方法而在等待的线程才能继续执行。
+在CyclicBarrier类的内部有一个计数器，每个线程在到达屏障点的时候都会调用await()方法将自己阻塞，此时计数器会减1，当计数器减为0的时候所有因调用await方法而被阻塞的线程将被唤醒（使用`condition.signalAll`）。
+
+- CyclicBarrier内部使用的是Lock + Condition实现的等待/通知模式。
 
 CyclicBarrier 和 CountdownLatch 的一个区别是，CyclicBarrier 的计数器通过调用 reset() 方法可以循环使用，所以它才叫做循环屏障。
 
@@ -2165,5 +2163,226 @@ new Thread(() -> {
     syncWaitNotify.print(3, 1, "c");
 }).start();
 
+```
+
+## 自定义线程池
+
+![image-20240702144436936](assets/image-20240702144436936.png)
+
+```java
+public class Demo3 {
+   public static void main(String[] args) {
+      ThreadPool threadPool = new ThreadPool(2,  TimeUnit.SECONDS, 1, 4);
+      for (int i = 0; i < 10; i++) {
+         threadPool.execute(()->{
+            try {
+               TimeUnit.SECONDS.sleep(10000);
+            } catch (InterruptedException e) {
+               e.printStackTrace();
+            }
+            System.out.println("任务正在执行!");
+         });
+      }
+   }
+}
+
+
+/**
+ * 自定义线程池
+ */
+class ThreadPool {
+   /**
+    * 自定义阻塞队列
+    */
+   private BlockingQueue<Runnable> blockingQueue;
+
+   /**
+    * 核心线程数
+    */
+   private int coreSize;
+
+   private HashSet<Worker> workers = new HashSet<>();
+
+   /**
+    * 用于指定线程最大存活时间
+    */
+   private TimeUnit timeUnit;
+   private long timeout;
+
+   /**
+    * 工作线程类
+    * 内部封装了Thread类，并且添加了一些属性
+    */
+   private class Worker extends Thread {
+      Runnable task;
+
+      public Worker(Runnable task) {
+         System.out.println("初始化任务");
+         this.task = task;
+      }
+
+      @Override
+      public void run() {
+         // 如果有任务就执行
+         // 如果阻塞队列中有任务，就继续执行
+         while (task != null || (task = blockingQueue.take()) != null) {
+            try {
+               System.out.println("执行任务");
+               task.run();
+            } catch (Exception e) {
+               e.printStackTrace();
+            } finally {
+               // 任务执行完毕，设为空
+               System.out.println("任务执行完毕");
+               task = null;
+            }
+         }
+         // 移除任务
+         synchronized (workers) {
+            System.out.println("移除任务");
+            workers.remove(this);
+         }
+      }
+   }
+
+   public ThreadPool(int coreSize, TimeUnit timeUnit, long timeout, int capacity) {
+      this.coreSize = coreSize;
+      this.timeUnit = timeUnit;
+      blockingQueue = new BlockingQueue<>(capacity);
+      this.timeout = timeout;
+   }
+
+   public void execute(Runnable task) {
+      synchronized (workers) {
+         // 创建任务
+         // 池中还有空余线程时，可以运行任务
+         // 否则阻塞
+         if (workers.size() < coreSize) {
+            Worker worker = new Worker(task);
+            workers.add(worker);
+            worker.start();
+         } else {
+            System.out.println("线程池中线程已用完，请稍等");
+            blockingQueue.put(task);
+         }
+      }
+   }
+}
+
+/**
+ * 阻塞队列
+ * 用于存放主线程或其他线程产生的任务
+ */
+class BlockingQueue<T> {
+   /**
+    * 阻塞队列
+    */
+   private  Deque<T> blockingQueue;
+
+   /**
+    * 阻塞队列容量
+    */
+   private int capacity;
+
+   /**
+    * 锁
+    */
+   private ReentrantLock lock;
+
+   /**
+    * 条件队列
+    */
+   private Condition fullQueue;
+   private Condition emptyQueue;
+
+
+   public BlockingQueue(int capacity) {
+      blockingQueue = new ArrayDeque<>(capacity);
+      lock = new ReentrantLock();
+      fullQueue = lock.newCondition();
+      emptyQueue = lock.newCondition();
+      this.capacity = capacity;
+   }
+
+   /**
+    * 获取任务的方法
+    */
+   public T take() {
+      // 加锁
+      lock.lock();
+      try {
+         // 如果阻塞队列为空（没有任务），就一直等待
+         while (blockingQueue.isEmpty()) {
+            try {
+               emptyQueue.await();
+            } catch (InterruptedException e) {
+               e.printStackTrace();
+            }
+         }
+         // 获取任务并唤醒生产者线程
+         T task = blockingQueue.removeFirst();
+         fullQueue.signalAll();
+         return task;
+      } finally {
+         lock.unlock();
+      }
+   }
+
+   public T takeNanos(long timeout, TimeUnit unit) {
+      // 转换等待时间
+      lock.lock();
+      try {
+         long nanos = unit.toNanos(timeout);
+         while (blockingQueue.isEmpty()) {
+            try {
+               // awaitNanos会返回剩下的等待时间
+               nanos = emptyQueue.awaitNanos(nanos);
+               if (nanos < 0) {
+                  return null;
+               }
+            } catch (InterruptedException e) {
+               e.printStackTrace();
+            }
+         }
+         T task = blockingQueue.removeFirst();
+         fullQueue.signalAll();
+         return task;
+      } finally {
+         lock.unlock();
+      }
+   }
+
+   /**
+    * 放入任务的方法
+    * @param task 放入阻塞队列的任务
+    */
+   public void put(T task) {
+      lock.lock();
+      try {
+         while (blockingQueue.size() == capacity) {
+            try {
+               System.out.println("阻塞队列已满");
+               fullQueue.await();
+            } catch (InterruptedException e) {
+               e.printStackTrace();
+            }
+         }
+         blockingQueue.add(task);
+         // 唤醒等待的消费者
+         emptyQueue.signalAll();
+      } finally {
+         lock.unlock();
+      }
+   }
+
+   public int getSize() {
+      lock.lock();
+      try {
+         return blockingQueue.size();
+      } finally {
+         lock.unlock();
+      }
+   }
+}
 ```
 

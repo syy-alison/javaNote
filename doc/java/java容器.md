@@ -583,7 +583,7 @@ public interface BlockingQueue<E> extends Queue<E> {
 
 ![image-20240615195827727.png](assets/image-20240615195827727.png)
 
-![image-20240615195842244](/assets/image-20240615195842244.png)
+![image-20240615195842244](assets/image-20240615195842244.png)
 
 Java 中常用的阻塞队列实现类有以下几种：
 
