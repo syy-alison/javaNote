@@ -515,6 +515,10 @@ Read View 有四个重要的字段：
 
 # 四、锁
 
+判断加锁的语句
+
+ `select * from performance_schema.data_locks\G;`
+
 ## 全局锁
 
 - 加锁：`flush tables with read lock` 执行后，**整个数据库就处于只读状态了**，这时其他线程执行以下操作，都会被阻塞：

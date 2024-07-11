@@ -187,28 +187,28 @@ public class TestFrame{//1
 - 第一行，java虚拟机会先进行类加载，将类中的字节码加到java的虚拟机中，也就是方法区。
 - 类加载完，java虚拟机就会启动一个为main的主线程，并且为这个线程分配一个栈内存，然后线程就交给任务调度器去执行。当cpu为主线程分配了时间片，cpu就开始运行主线程，运行到哪行代码由程序计数器来记录。
 
-![代码1.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码1.png)
+![代码1.png](images/代码1.png)
 
 - 第二行：入口是main方法，则虚拟机会为main方法创建一个栈帧。
 
-![代码2.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码2.png)
+![代码2.png](images/代码2.png)
 
 - 第三行：进入method1方法，也会为method1方法创建一个栈帧。x=10写进栈帧。
 
-![代码3.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码3.png)
+![代码3.png](images/代码3.png)
 
 - 第五行：执行完后y = 11;
 - 第六行：进入method2方法，同时为method2方法创建一个栈帧。
 
-![代码4.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码4.png)
+![代码4.png](images/代码4.png)
 
 - 第九行：在堆中新建一个对象，并将对象的引用n指向对象。
 
-  ![代码5.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码5.png)
+  ![代码5.png](images/代码5.png)
 
 - 第10行：返回n,并将m指向object对象。
 
-![代码6.png](D:/sjtu/AIR/SYY/JOB/Note/doc/java/images/代码6.png)
+![代码6.png](images/代码6.png)
 
 - 之后释放method2的栈帧内存。返回到method1,之后method1执行完，其栈帧也要释放掉。
 

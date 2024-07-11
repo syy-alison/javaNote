@@ -66,6 +66,8 @@
 
 ## 3.1 ArrayList
 
+
+
 `ArrayList` 继承于 `AbstractList` ，实现了 `List`, `RandomAccess`, `Cloneable`, `java.io.Serializable` 这些接口。
 
 ```java
@@ -460,6 +462,23 @@ public  class Person implements Comparable<Person> {
         return 0;
     }
 }
+```
+
+```java
+    public static void main(String[] args) {
+        TreeMap<Person, String> pdata = new TreeMap<Person, String>();
+        pdata.put(new Person("张三", 30), "zhangsan");
+        pdata.put(new Person("李四", 20), "lisi");
+        pdata.put(new Person("王五", 10), "wangwu");
+        pdata.put(new Person("小红", 5), "xiaohong");
+        // 得到key的值的同时得到key所对应的值
+        Set<Person> keys = pdata.keySet();
+        for (Person key : keys) {
+            System.out.println(key.getAge() + "-" + key.getName());
+
+        }
+    }
+
 ```
 
 
@@ -1283,6 +1302,13 @@ map.put(key, anotherValue);
 `ConcurrentHashMap` 提供了一些原子性的复合操作，如 `putIfAbsent`、`compute`、`computeIfAbsent` 、`computeIfPresent`、`merge`等。这些方法都可以接受一个函数作为参数，根据给定的 key 和 value 来计算一个新的 value，并且将其更新到 map 中。
 
 很多同学可能会说了，这种情况也能加锁同步呀！确实可以，但不建议使用加锁的同步机制，违背了使用 `ConcurrentHashMap` 的初衷。在使用 `ConcurrentHashMap` 的时候，尽量使用这些原子性的复合操作方法来保证原子性。
+
+## 6.3 TreeMap
+
+- TreeMap存储K-V键值对，通过红黑树（R-B tree）实现；
+- TreeMap继承了NavigableMap接口，NavigableMap接口继承了SortedMap接口，可支持一系列的导航定位以及导航操作的方法，当然只是提供了接口，需要TreeMap自己去实现；
+- TreeMap实现了Cloneable接口，可被克隆，实现了Serializable接口，可序列化；
+- TreeMap因为是通过红黑树实现，红黑树结构天然支持排序，默认情况下通过Key值的自然顺序进行排序；
 
 # ArrayBlockingQueue
 

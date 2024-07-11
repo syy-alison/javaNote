@@ -357,8 +357,6 @@ Apache Kafka项目旨在提供统一的，高吞吐量，低延迟的平台来�
 
 ### 2.2.3. 消息发送
 
-**总结：**
-
 - **Producer发送消息到对应broker时，会根据Paritition机制选择将消息存储到哪一个Paritition，机制主要有轮询策略，随机策略，和按照key保序的策略，也可以自定义策略。**
 
 Producer其主要功能是负责向Broker发送消息，工作原理如下图所示：
@@ -392,11 +390,41 @@ Producer其主要功能是负责向Broker发送消息，工作原理如下图所
 
 ### 2.2.4. 消息消费
 
-**总结：每个Consumer group保存自己的位移信息，表示要消费的下一条消息的offset。每个消费者根据策略来消费Partition的消息，策略主要有两种，一种是轮询策略，另一种是根据消费者的消费能力进行计算，算出每个消费者消费的分区数量。**
+- 每个Consumer group保存自己的位移信息，表示要消费的下一条消息的offset。每个消费者根据策略来消费Partition的消息，策略主要有两种，一种是轮询策略，另一种是根据消费者的消费能力进行计算，算出每个消费者消费的分区数量。
+
+- 老版本的位移是提交到zookeeper中的，但是zookeeper其实并不是和进行大批量的读写操作，尤其是写操作。从0.9版本开始kafka提供了另一种解决方案：Broker 端增加了_consumer_offsets这个topic，将offset信息写入这个topic，这样consumer就不需要依赖zookeeper。`enable.auto.commit`  控制是自动提交还是手动提交
+
+  - 自动提交：**Kafka 会保证在开始调用 poll 方法时，提交上次 poll 返回的所有消息。从顺序上来说，poll 方法的逻辑是：先提交上一批消息的位移，再处理下一批消息，因此它能保证不出现消费丢失的情况。但自动提交位移的一个问题在于，它可能会出现重复消费。**
+  - 手动提交：它的好处就在于更加灵活，你完全能够把控位移提交的时机和频率。它也有一个缺陷，就是在调用 commitSync() 时，Consumer 程序会处于阻塞状态，直到远端的 Broker 返回提交结果，这个阻塞状态才会结束。
+    - 同步提交
+    - 异步提交
+
+- **Rebalance（重平衡）**
+
+  - 触发条件
+
+    - **消费组组成员数发生变更。**比如有新的 Consumer 实例加入组或者离开组，抑或是有 Consumer 实例崩溃被“踢出”组。
+    - **订阅主题数发生变更（消费组订阅了新的主题）**。Consumer Group 可以使用正则表达式的方式订阅主题，比如 consumer.subscribe(Pattern.compile(“t.*c”)) 就表明该 Group 订阅所有以字母 t 开头、字母 c 结尾的主题。在 Consumer Group 的运行过程中，你新创建了一个满足这样条件的主题，那么该 Group 就会发生 Rebalance。
+    - **订阅的主题分区数发生变更。**Kafka 当前只能允许增加一个主题的分区数（言外之意就是：不允许减少主题的分区数）。当分区数增加时，就会触发订阅该主题的所有 Group 开启 Rebalance。 
+
+  - 问题
+
+    - Rebalance 影响 Consumer 端 TPS。总之就是，在 Rebalance 期间，Consumer 会停下手头的事情，什么也干不了。
+    - Rebalance 很慢。如果你的 Group 下成员很多，就一定会有这样的痛点。还记得我曾经举过的那个国外用户的例子吧？他的 Group 下有几百个 Consumer 实例，Rebalance 一次要几个小时。在那种场景下，Consumer Group 的 Rebalance 已经完全失控了。
+    - Rebalance 效率不高。当前 Kafka 的设计机制决定了每次 Rebalance 时，Group 下的所有成员都要参与进来，而且通常不会考虑局部性原理，但局部性原理对提升系统性能是特别重要的。
+
+  - 避免
+
+    - 未能及时发送心跳导致的 Rebalance：需要仔细地设置 session.timeout.ms 和 heartbeat.interval.ms 的值。我在这里给出一些推荐数值，你可以“无脑”地应用在你的生产环境中。设置 session.timeout.ms = 6s。设置 heartbeat.interval.ms = 2s
+
+      要保证 Consumer 实例在被判定为“dead”之前，能够发送至少 3 轮的心跳请求，即 session.timeout.ms >= 3 * heartbeat.interval.ms。
+
+    - Consumer 消费时间过长导致 Rebalance：max.poll.interval.ms 它限定了 Consumer 端应用程序两次调用 poll 方法的最大时间间隔。它的默认值是 5 分钟，表示你的 Consumer 程序如果在 5 分钟之内无法消费完 poll 方法返回的消息，那么 Consumer 会主动发起“离开组”的请求，Coordinator 也会开启新一轮 Rebalance。 
+
 
 kafka消费者API封装了对集群一系列Broker的访问，可以透明的消费topic中的数据，消费者在消费的过程中需要记录自己消费了多少数据，很多消息引擎都会把这部分信息维护在服务器端，这样做的好处是实现简单，但是有三个问题：1. Broker从此变成有状态的，会影响伸缩性；2 需要引入应答机制增加了系统的复杂度；3 由于要保存很多consumer的offset信息，必然引入复杂的数据结构，造成资源浪费。而kafka的方案是**每个Consumer group保存自己的位移信息，那么只需要简单的一个整数表示位置就够了，同时可以引入Checkpoint机制定期持久化，简化了应答机制的实现。**
 
-老版本的位移是提交到zookeeper中的，但是zookeeper其实并不是和进行大批量的读写操作，尤其是写操作。从0.9版本开始kafka提供了另一种解决方案：增加了_consumer_offsets这个topic，将offset信息写入这个topic，这样consumer就不需要依赖zookeeper。
+**老版本的位移是提交到zookeeper中的，但是zookeeper其实并不是和进行大批量的读写操作，尤其是写操作。从0.9版本开始kafka提供了另一种解决方案：增加了_consumer_offsets这个topic，将offset信息写入这个topic，这样consumer就不需要依赖zookeeper。** 位移主题的key: **<GroupID，主题名，分区号 >**。value保存了位移信息。
 
 ![image-20240620142803876](assets/image-20240620142803876.png)
 
@@ -427,9 +455,13 @@ kafka消费者API封装了对集群一系列Broker的访问，可以透明的消
 
 ![image-20240620145243703](assets/image-20240620145243703.png)
 
+
+
+
+
 ### 2.2.5. 消息可靠性
 
-**总结：通过多副本策略和消息应答来保证消息可靠性。**
+**通过多副本策略和消息应答来保证消息可靠性。**
 
 Kafka的高可靠性的保障来源于其健壮的副本策略即partition的replication机制，kafka将为每个partition提供多个replication，同时将replication分布到整个集群的其他Broker中，具体的replication数量可以根据参数设置，这里的replication会选举一个Leader节点，其他节点为Follower节点，消息全部发送到Leader然后再通过同步算法同步到Follower节点中，当其中有replication不能工作会重新进行选举，即使部分Broker宕机仍然可以保证整个集群的高可用，消息不丢失。
 
@@ -467,11 +499,14 @@ Kafka允许同一个partition存在多个消息副本（Replica）,每个partiti
 
 ISR(In-sync replicas)指的是一个Partition中与leader保持同步的Replica的列表（实际存储的是副本所在Broker的BrokerId）,˙这里的保持同步不是指与leader数据保持完全一致，只需在replica.lag.max.ms时间内与Leader保持有效连接，官方解释如下：
 
+- 这个参数的含义是 Follower 副本能够落后 Leader 副本的最长时间间隔，当前默认值是 10 秒。这就是说，只要一个 Follower 副本落后 Leader 副本的时间不连续超过 10 秒，那么 Kafka 就认为该 Follower 副本与 Leader 是同步的，即使此时 Follower 副本中保存的消息明显少于 Leader 副本中的消息。
+- Follower 副本唯一的工作就是不断地从 Leader 副本拉取消息，然后写入到自己的提交日志中。如果这个同步过程的速度持续慢于 Leader 副本的消息写入速度，那么在 replica.lag.time.max.ms 时间后，此 Follower 副本就会被认为是与 Leader 副本不同步的，因此不能再放入 ISR 中。此时，Kafka 会自动收缩 ISR 集合，将该副本“踢出”ISR。
+- 倘若该副本后面慢慢地追上了 Leader 的进度，那么它是能够重新被加回 ISR 集合的。这也表明，ISR 是一个动态调整的集合，而非静态不变的集合。 
+- ISR中所有副本都跟上了Leader，通常只有ISR里的成员才可能被选为Leader。当Kafka中unclean.leader.election.enable配置为true（默认为false）且ISR中所有副本均宕机的情况下，才允许ISR外的副本被选为Leader，此时会丢失部分已应答的数据。
+
 Follower周期性的向Leader发送FetchRquest请求，发送时间间隔配置在replica.fetch.wait.max.ms中，默认值是500。
 
 各Partition的Leader负责维护ISR列表并将ISR的变更同步至zookeeper,被移出ISR的Follower会继续向Leader发FetchRequest请求，试图再次跟上Leader重新进入ISR。
-
-ISR中所有副本都跟上了Leader，通常只有ISR里的成员才可能被选为Leader。当Kafka中unclean.leader.election.enable配置为true（默认为false）且ISR中所有副本均宕机的情况下，才允许ISR外的副本被选为Leader，此时会丢失部分已应答的数据。
 
 #### 2.3.2.3. ACKs
 
@@ -699,6 +734,76 @@ Linux 2.4+内核通过sendfile系统调用，提供了零拷贝，数据通过DM
 
 从具体实现来看，Kafka的数据传输通过TransportLayer来完成，其子类PlaintextTransportLayer通过Java NIO的FileChannel的transferTo()和transferFrom()方法实现零拷贝。transferTo()和transferFrom()并不保证一定能使用零拷贝，实际上是否能使用零拷贝与操作系统相关，如果操作系统提供sendfile这样的零拷贝系统调用，则这两个方法会通过这样的系统调用充分利用零拷贝的优势，否则并不能通过这两个方法本身实现零拷贝。
 
+## 2.5 幂等消息和事务消息
+
+**所谓的消息交付可靠性保障，是指 Kafka 对 Producer 和 Consumer 要处理的消息提供什么样的承诺。**常见的承诺有以下三种：
+
+- 最多一次（at most once）：消息可能会丢失，但绝不会被重复发送：
+- 至少一次（at least once）：消息不会丢失，但有可能被重复发送。
+- 精确一次（exactly once）：消息不会丢失，也不会被重复发送（通过幂等性和事务性来实现）。
+
+### 2.5.1 幂等消息
+
+- 是 0.11.0.0 版本引入的新功能。
+
+- 指定幂等消息：enable.idempotence 被设置成 true 后，Producer 自动升级成幂等性 Producer，其他所有的代码逻辑都不需要改变。Kafka 自动帮你做消息的重复去重。
+
+  ```java
+  props.put(“enable.idempotence”, ture);
+  // 或者
+  props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG， true)。
+  ```
+
+- 底层具体的原理很简单，就是经典的用空间去换时间的优化思路，即在 Broker 端多保存一些字段。当 Producer 发送了具有相同字段值的消息后，Broker 能够自动知晓这些消息已经重复了，于是可以在后台默默地把它们“丢弃”掉。当然，实际的实现原理并没有这么简单，但你大致可以这么理解。
+- 作用范围：一个幂等性 Producer 能够保证某个主题的一个分区上不出现重复消息，它无法实现多个分区的幂等性。幂等性 Producer 只能实现单会话上的幂等性，不能实现跨会话的幂等性。这里的会话，你可以理解为 Producer 进程的一次运行。当你重启了 Producer 进程之后，这种幂等性保证就丧失了。
+
+**具体实现原理：**
+
+- 幂等键
+  1.  **Producer ID（PID）** Kafka为每个生产者实例分配一个全局唯一的PID。这个PID在整个Kafka集群中是独一无二的，用于标识特定的生产者实例。PID的分配是在生产者实例首次连接到Kafka集群时进行的，并且这个ID会一直保持不变，直到生产者实例关闭或断开连接。 
+  2.  **序列号（Sequence Number）** 除了PID之外，生产者还会为它发送的每条消息分配一个递增的序列号。这个序列号是在该生产者实例的生命周期内单调递增的，确保每条消息都有一个唯一的序列号。即使两条消息的内容完全相同，只要它们的序列号不同，它们就被视为不同的消息。 
+  3.  **PID和序列号的组合** PID和序列号一起构成了一个独特的组合，这个组合可以作为每条消息的唯一标识。Kafka Broker使用这个组合来判断是否已经处理过该消息。当Broker接收到一条消息时，它会检查该PID和序列号是否已经在内部缓存中存在。
+- 缓存机制
+  -  Kafka Broker为每个PID维护一个缓存区域，主要用于存储最近一段时间内接收到的消息序列号。这个缓存区域是一个数据结构（如哈希表或有序集合），它允许Broker快速地根据PID和序列号来检查消息是否已经被处理过。缓存区域的大小和过期策略可以根据需要进行配置，以平衡内存使用和消息去重的准确性。
+  - 当Broker接收到一个新的消息时，它会首先根据PID查找到对应的缓存区域。然后，Broker会检查该消息的序列号是否已经在缓存中存在。这个检查过程通常是高效的，因为缓存区域是专为快速查找而设计的。
+  -  如果消息的序列号在缓存中已经存在，这意味着之前已经有一个具有相同PID和序列号的消息被处理过。因此，这条新消息实际上是一个重复的消息。为了避免重复处理，Broker会拒绝这条消息的写入请求，即不会将其追加到日志中。
+  -  如果消息的序列号在缓存中不存在，那么这条消息就是一个新的、未被处理过的消息。Broker会将该消息的序列号加入缓存区域，并继续处理该消息，包括将其追加到日志中、更新索引等。
+  - 随着时间的推移，缓存区域中的序列号会逐渐增多。为了保持缓存的高效性和准确性，Kafka可能会采取一些策略来管理缓存，比如定期清理过期的序列号（即已经很久没有被使用过的序列号）或限制缓存的大小。
+
+### 2.5.2 事务消息
+
+- 事务型 Producer 能够保证将消息原子性地写入到多个分区中。这批消息要么全部写入成功，要么全部失败。另外，事务型 Producer 也不惧进程的重启。Producer 重启回来后，Kafka 依然保证它们发送消息的精确一次处理。
+
+- 设置事务型 Producer 的方法也很简单，满足两个要求即可：
+
+  - 和幂等性 Producer 一样，开启 enable.idempotence = true。
+  - 设置 Producer 端参数 transctional. id。最好为其设置一个有意义的名字。
+
+  ```java
+  // 事务的初始化
+  producer.initTransactions();
+  try {
+      // 事务的开始
+      producer.beginTransaction();
+      producer.send(record1);
+      producer.send(record2);
+      // 事务的提交
+      producer.commitTransaction();
+  } catch (KafkaException e) {
+      // 事务的终止
+      producer.abortTransaction();
+  }
+  ```
+
+- 这段代码能够保证 Record1 和 Record2 被当作一个事务统一提交到 Kafka，要么它们全部提交成功，要么全部写入失败。实际上即使写入失败，Kafka 也会把它们写入到底层的日志中，也就是说 Consumer 还是会看到这些消息。因此在 Consumer 端，读取事务型 Producer 发送的消息也是需要一些变更的。修改起来也很简单，设置 isolation.level 参数的值即可。当前这个参数有两个取值：
+
+  1. read_uncommitted：这是默认值，表明 Consumer 能够读取到 Kafka 写入的任何消息，不论事务型 Producer 提交事务还是终止事务，其写入的消息都可以读取。很显然，如果你用了事务型 Producer，那么对应的 Consumer 就不要使用这个值。
+  2. read_committed：表明 Consumer 只会读取事务型 Producer 成功提交事务写入的消息。当然了，它也能看到非事务型 Producer 写入的所有消息。 
+
+
+
+
+
 ## 2.5. Kafka的一些坑
 
 ### 2.5.1. 消息积压
@@ -726,23 +831,31 @@ Linux 2.4+内核通过sendfile系统调用，提供了零拷贝，数据通过DM
 
 **现象**：在MQ使用过程中由于MQ系统故障或者使用不当导致消息丢失
 
-原因：
+- **生产者丢失消息**：调用`send`方法发送消息之后，消息可能因为网络问题并没有发送过去。
+  - 不要使用 producer.send(msg)，而要使用 producer.send(msg, callback)。记住，一定要使用带有回调通知的 send 方法。
 
-- Mafka partition leader选举策略问题造成的消息丢失
-- 数据可靠性级别未设置ack=-1
-- 在机器重启过程中，异步发送消息还没处理完客户端已经被销毁了
-- 消息过大造成发送失败
-- 消息发送失败没有及时关注发送结果
-- 集群机器大面积宕机
-- 部分业务存在超时丢弃消息逻辑
 
-**解决：**
+```java
+//1. 可以通过 `get()`方法获取调用结果，但是这样也让它变为了同步操作
+SendResult<String, Object> sendResult = kafkaTemplate.send(topic, o).get();
+if (sendResult.getRecordMetadata() != null) {
+  logger.info("生产者成功发送消息到" + sendResult.getProducerRecord().topic() + "-> " + sendRe
+              sult.getProducerRecord().value().toString());
+}        
+// 2. 添加回调函数的形式
+ListenableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, o);
+        future.addCallback(result -> logger.info("生产者成功发送消息到topic:{} partition:{}的消息", result.getRecordMetadata().topic(), result.getRecordMetadata().partition()),
+                ex -> logger.error("生产者发送消失败，原因：{}", ex.getMessage()));
 
-- 业务消费未执行成功不要返回消费成功
-- 程序退出先关闭Consumer和Producer.
-- 如果对于消息丢失0容忍可以设置客户端ack=-1
-- 做好集群容灾处理，针对mafka尽量保证partition均匀分布在所有Broker中
-- 不要发送超过1M 以上的消息
+```
+
+- **消费者丢失消息**：当消费者拉取到了分区的某个消息之后，消费者会自动提交了 offset。自动提交的话会有一个问题，试想一下，当消费者刚拿到这个消息准备进行真正消费的时候，突然挂掉了，消息实际上并没有被消费，但是 offset 却被自动提交了。
+  - 确保消息消费完成再提交。Consumer 端有个参数 enable.auto.commit，最好把它设置成 false，并采用手动提交位移的方式。就像前面说的，这对于单 Consumer 多线程处理的场景而言是至关重要的。 但是，这样会带来消息被重新消费的问题。比如你刚刚消费完消息之后，还没提交 offset，结果自己挂掉了，那么这个消息理论上就会被消费两次。
+- **kafka弄丢了消息**：假如 leader 副本所在的 broker 突然挂掉，那么就要从 follower 副本重新选出一个 leader ，但是 leader 的数据还有一些没有被 follower 副本的同步的话，就会造成消息丢失。
+  - 解决办法就是我们设置 **acks = all**。acks 是 Kafka 生产者(Producer) 很重要的一个参数。
+  - 设置 unclean.leader.election.enable = false。这是 Broker 端的参数，它控制的是哪些 Broker 有资格竞选分区的 Leader。如果一个 Broker 落后原先的 Leader 太多，那么它一旦成为新的 Leader，必然会造成消息的丢失。
+  - 设置 replication.factor >= 3。这也是 Broker 端的参数。其实这里想表述的是，最好将消息多保存几份，毕竟目前防止消息丢失的主要机制就是冗余。
+  - 设置 min.insync.replicas > 1。这依然是 Broker 端参数，控制的是消息至少要被写入到多少个副本才算是“已提交”。设置成大于 1 可以提升消息持久性。在实际环境中千万不要使用默认值 1。
 
 ### 2.5.3. 重复消费 
 
@@ -799,7 +912,8 @@ Linux 2.4+内核通过sendfile系统调用，提供了零拷贝，数据通过DM
 - **如何保证消息不丢失**
 
   - **生产者丢失消息**：调用`send`方法发送消息之后，消息可能因为网络问题并没有发送过去。
-
+- 不要使用 producer.send(msg)，而要使用 producer.send(msg, callback)。记住，一定要使用带有回调通知的 send 方法。
+  
   ```java
   //1. 可以通过 `get()`方法获取调用结果，但是这样也让它变为了同步操作
   SendResult<String, Object> sendResult = kafkaTemplate.send(topic, o).get();
@@ -812,11 +926,10 @@ Linux 2.4+内核通过sendfile系统调用，提供了零拷贝，数据通过DM
           future.addCallback(result -> logger.info("生产者成功发送消息到topic:{} partition:{}的消息", result.getRecordMetadata().topic(), result.getRecordMetadata().partition()),
                   ex -> logger.error("生产者发送消失败，原因：{}", ex.getMessage()));
   
-  ```
-
+```
+  
   - **消费者丢失消息**：当消费者拉取到了分区的某个消息之后，消费者会自动提交了 offset。自动提交的话会有一个问题，试想一下，当消费者刚拿到这个消息准备进行真正消费的时候，突然挂掉了，消息实际上并没有被消费，但是 offset 却被自动提交了。**解决办法也比较粗暴，我们手动关闭自动提交 offset，每次在真正消费完消息之后再自己手动提交 offset 。**但是，细心的朋友一定会发现，这样会带来消息被重新消费的问题。比如你刚刚消费完消息之后，还没提交 offset，结果自己挂掉了，那么这个消息理论上就会被消费两次。
-  - kafka弄丢了消息：
-  - 假如 leader 副本所在的 broker 突然挂掉，那么就要从 follower 副本重新选出一个 leader ，但是 leader 的数据还有一些没有被 follower 副本的同步的话，就会造成消息丢失。解决办法就是我们设置 **acks = all**。acks 是 Kafka 生产者(Producer) 很重要的一个参数。
+  - kafka弄丢了消息：假如 leader 副本所在的 broker 突然挂掉，那么就要从 follower 副本重新选出一个 leader ，但是 leader 的数据还有一些没有被 follower 副本的同步的话，就会造成消息丢失。解决办法就是我们设置 **acks = all**。acks 是 Kafka 生产者(Producer) 很重要的一个参数。
 
 - **如何保证消息不重复消费**
 

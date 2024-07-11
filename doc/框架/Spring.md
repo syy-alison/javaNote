@@ -2,7 +2,7 @@
 
 ### 什么是 Spring 框架?
 
-Spring 是一款开源的轻量级 Java 开发框架，旨在提高开发人员的开发效率以及系统的可维护性。
+ Spring 是一款开源的轻量级 Java 开发框架，旨在提高开发人员的开发效率以及系统的可维护性。
 
 我们一般说 Spring 框架指的都是 Spring Framework，它是很多模块的集合，使用这些模块可以很方便地协助我们进行开发，比如说 Spring 支持 IoC（Inversion of Control:控制反转） 和 AOP(Aspect-Oriented Programming:面向切面编程)、可以很方便地对数据库进行访问、可以很方便地集成第三方组件（电子邮件，任务，调度，缓存等等）、对单元测试支持比较好、支持 RESTful Java 应用程序的开发。
 
@@ -211,8 +211,6 @@ Spring 内置的 `@Autowired` 以及 JDK 内置的 `@Resource` 和 `@Inject` 都
 
 ### @Autowired 和 @Resource 的区别是什么？
 
-举个例子，`SmsService` 接口有两个实现类: `SmsServiceImpl1`和 `SmsServiceImpl2`，且它们都已经被 Spring 容器所管理。
-
 - `@Autowired` 是 Spring 提供的注解，`@Resource` 是 JDK 提供的注解。
 - `Autowired` 默认的注入方式为`byType`（根据类型进行匹配），`@Resource`默认注入方式为 `byName`（根据名称进行匹配）。
 - 当一个接口存在多个实现类的情况下，`@Autowired` 和`@Resource`都需要通过名称才能正确匹配到对应的 Bean。`Autowired` 可以通过 `@Qualifier` 注解来显式指定名称，`@Resource`可以通过 `name` 属性来显式指定名称。
@@ -265,7 +263,11 @@ prototype 作用域下，每次获取都会创建一个新的 bean 实例，不�
 
 ### Bean 的生命周期了解么?
 
-**创建 Bean 的实例**：Bean 容器首先会找到配置文件中的 Bean 定义，然后使用 Java 反射 API 来创建 Bean 的实例。
+**先定义Bean：** 通过XML配置或者注解定义bean
+
+调用new AnnotationConfigApplicationContext 会开始创建bean
+
+**创建 Bean 的实例**：Bean 容器首先会找到配置文件中的 Bean 定义（BeanDefinition : 主要是bean得一些配置信息，比如xml配置），然后使用 Java 反射 API 来创建 Bean 的实例。
 
 **Bean 属性赋值/填充**：为 Bean 设置相关属性和依赖，例如`@Autowired` 等注解注入的对象、`@Value` 注入的值、`setter`方法或构造函数注入依赖和值、`@Resource`注入的各种资源。
 
@@ -518,7 +520,7 @@ MVC 是一种设计模式，Spring MVC 是一款很优秀的 MVC 框架。Spring
 - **适配器模式** : Spring AOP 的增强或通知(Advice)使用到了适配器模式、spring MVC 中也是用到了适配器模式适配`Controller`。
 - ……
 
-## Spring 的循环依赖
+# Spring 的循环依赖
 
 循环依赖是指 Bean 对象循环引用，是两个或多个 Bean 之间相互持有对方的引用，例如 CircularDependencyA → CircularDependencyB → CircularDependencyA。
 
@@ -564,9 +566,46 @@ private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(1
 
 在三级缓存这一块，主要记一下 Spring 是如何支持循环依赖的即可，也就是如果发生循环依赖的话，就去 **三级缓存 `singletonFactories`** 中拿到三级缓存中存储的 `ObjectFactory` 并调用它的 `getObject()` 方法来获取这个循环依赖对象的前期暴露对象（虽然还没初始化完成，但是可以拿到该对象在堆中的存储地址了），并且将这个前期暴露对象放到二级缓存中，这样在循环依赖时，就不会重复初始化了！
 
-不过，这种机制也有一些缺点，比如增加了内存开销（需要维护三级缓存，也就是三个 Map），降低了性能（需要进行多次检查和转换）。并且，还有少部分情况是不支持循环依赖的，比如非单例的 bean 和`@Async`注解的 bean 无法支持循环依赖。
+不过，这种机制也有一些缺点，比如增加了内存开销（需要维护三级缓存，也就是三个 Map），降低了性能（需要进行多次检查和转换）。并且，还有少部分情况是不支持循环依赖的，比如非单例的 bean 和`@Async`注解的 bean 无法支持循环依赖。如果构造函数产生循环依赖，可以加@Lazy注解来解决。
 
-### Spring 事务
+![image-20240711084721887](assets/image-20240711084721887.png)
+
+![image-20240711084506991](assets/image-20240711084506991.png)
+
+### @Lazy 能解决循环依赖吗？
+
+`@Lazy` 用来标识类是否需要懒加载/延迟加载，可以作用在类上、方法上、构造器上、方法参数上、成员变量中。
+
+Spring Boot 2.2 新增了全局懒加载属性，开启后全局 bean 被设置为懒加载，需要时再去创建。
+
+配置文件配置全局懒加载：
+
+```java
+#默认false
+spring.main.lazy-initialization=true
+
+```
+
+```jav
+SpringApplication springApplication=new SpringApplication(Start.class);
+springApplication.setLazyInitialization(false);
+springApplication.run(args);
+
+```
+
+循环依赖问题是如何通过`@Lazy` 解决的呢？这里举一个例子，比如说有两个 Bean，A 和 B，他们之间发生了循环依赖，那么 A 的构造器上添加 `@Lazy` 注解之后（延迟 Bean B 的实例化），加载的流程如下：
+
+- 首先 Spring 会去创建 A 的 Bean，创建时需要注入 B 的属性；
+- 由于在 A 上标注了 `@Lazy` 注解，因此 Spring 会去创建一个 B 的代理对象，将这个代理对象注入到 A 中的 B 属性；
+- 之后开始执行 B 的实例化、初始化，在注入 B 中的 A 属性时，此时 A 已经创建完毕了，就可以将 A 给注入进去。
+
+通过 `@Lazy` 就解决了循环依赖的注入， 关键点就在于对 A 中的属性 B 进行注入时，注入的是 B 的代理对象，因此不会循环依赖。
+
+之前说的发生循环依赖是因为在对 A 中的属性 B 进行注入时，注入的是 B 对象，此时又会去初始化 B 对象，发现 B 又依赖了 A，因此才导致的循环依赖。
+
+一般是不建议使用循环依赖的，但是如果项目比较复杂，可以使用 `@Lazy` 解决一部分循环依赖的问题。
+
+# Spring 事务
 
 #### 编程式事务管理
 
@@ -827,13 +866,13 @@ public interface TransactionDefinition {
 
 ### @Transactional 注解使用详解
 
-#### [`@Transactional` 的作用范围](#transactional-的作用范围)
+#### `@Transactional` 的作用范围
 
 1. **方法**：推荐将注解使用于方法上，不过需要注意的是：**该注解只能应用到 public 方法上，否则不生效。**
 2. **类**：如果这个注解使用在类上的话，表明该注解对该类中所有的 public 方法都生效。
 3. **接口**：不推荐在接口上使用。
 
-#### [`@Transactional` 的常用配置参数](https://javaguide.cn/system-design/framework/spring/spring-transaction.html#transactional-的常用配置参数)
+#### `@Transactional` 的常用配置参数
 
 `@Transactional`注解源码如下，里面包含了基本事务属性的配置：
 
