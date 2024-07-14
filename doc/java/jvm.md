@@ -966,6 +966,16 @@ Java 虚拟机所管理的内存中最大的一块，Java 堆是所有线程共�
 
 ![image-20240618164542237.png](assets/image-20240618164542237.png)
 
+```java
+-Xms4096m -Xmx4096m -Xmn2g -XX:MetaspaceSize=512m -XX:MaxMetaspaceSize=512m XX:CMSInitiatingOccupancyFraction=70
+
+```
+
+易知堆内存为4G，其中新生代占2G，老年代占2G。而非一般的老比新为3:1的关系，这也彰显着服务可能流量稍高一点。当然，从此我们也能简单退出以下几点：
+
+1. eden区占1.6G，两个survivor区分别200MB左右；
+2. 老年代占用到1.4G时会触发full gc。
+
 - **显式指定堆内存`–Xms`和`-Xmx`**
 
 ```java
