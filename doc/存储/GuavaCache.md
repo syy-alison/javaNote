@@ -16,6 +16,33 @@ https://blog.csdn.net/weixin_38569499/article/details/103720524
 
 #### 2、构造方式
 
+
+
+```java
+@Slf4j
+public class CacheTest {
+    private static Cache<String, String> cache = CacheBuilder.newBuilder().
+            maximumSize(2).
+            recordStats().
+            build();
+    private static void cache() throws InterruptedException {
+        cache.put("a", "a");
+        cache.put("b", "b");
+        cache.put("c", "c");
+        System.out.println(cache.getIfPresent("b"));
+        System.out.println(cache.getIfPresent("b"));
+        System.out.println(cache.getIfPresent("c"));
+        System.out.println(cache.getIfPresent("a"));
+
+        CacheStats stats = cache.stats();
+        System.out.println(JSON.toJSONString(stats));
+    }
+}
+
+```
+
+
+
 ![image-20240620193733176](assets/image-20240620193733176.png)
 
 #### 3、核心参数
@@ -108,3 +135,38 @@ Guava Cache的数据结构，和JDK 1.7版本的ConcurrentHashMap非常相似：
 #### 3.4 容量超限淘汰（LRU算法）
 
  如果缓存设置了最大容量（maximumSize，或者maximumWeight），则在添加缓存的时候，会去判断当前容量是否已经超限。如果缓存容量超限，则会通过LRU算法，淘汰掉最久没有访问的缓存。
+
+
+
+# **Caffeine**
+
+**Caffeine 的性能为何如此优秀？**
+
+1. 缓存淘汰算法
+
+一个好的缓存淘汰算法应该满足下面这些要求：
+
+- 保证缓存命中率高。
+- 维护成本不高，也就是不需要耗费太多资源。
+- 能够应对稀疏流量（Sparse Burst）的场景。
+
+稀疏流量指的是在一个时间段内，流量突然出现了大幅增加，但是并不持续，短时间内又恢复正常水平，比如网站某个热门活动开启前后时会突然涌入大量的用户访问。
+
+使用频率非常高的 LRU 算法实现简单，内存占用也低，但其并不能反映访问频率。LFU 算法可以反映访问频率，但其又需要较高的内存占用，并且无法处理稀疏流量的场景
+
+Caffeine 并没有采用上面任何一种缓存淘汰算法，准确点来说其采用的是优化过后的 LFU 算法和 LRU 算法的结合 — W-TinyLFU 算法。W-TinyLFU 算法综合了 LRU 算法和 LFU 算法的优点，同时具备高命中率、低内存占用等优点。
+
+W-TinyLFU 算法解决了传统 LFU 算法的两个常见缺陷：
+
+- 维护频率信息统计的开销较大：传统 LFU 算法需要为每一个缓存项维护最近一段时间（例如过去 10 分钟或 1 个小时）相应的频率统计信息，每一次访问都需要更新相应的统计信息，这会带来一定的存储和性能开销。
+- 无法处理稀疏流量（sparse burst）的场景：传统的 LFU 算法使用访问频率作为度量标准，但是在一些场景下，热点数据的访问频率变化非常快。这种情况下，早先频繁访问的记录可能会占据缓存，而后期访问较多的记录则无法被命中。
+
+于第一个问题，W-TinyLFU 算法是通过一种叫做 Count-Min Sketch（CMS） 的算法解决的，基于这个算法实现了 LFU 的低内存占用版本 TinyLFU ：
+
+- Count–Min Sketch 算法类似[布隆过滤器 (Bloom Filter)](https://javaguide.cn/cs-basics/data-structure/bloom-filter.html)。其实，本质上来说，它就是基于 Bloom Filter 演进得来的，借鉴了 Bloom Filter 的核心思想。因此，这两者存在很多共同点比如占用的内存空间都非常小，都依赖 Hash 算法，统计结果都存在一定的误差。不过，这点误差影响并不大，很多场景比如频率统计我们本身并不需要得到一个精确值。不同的是，Bloom Filter 和 Count–Min Sketch 的应用场景不同，前者主要用于确定指定的元素是否存在，后者主要用于频率统计。
+- 
+
+
+
+
+

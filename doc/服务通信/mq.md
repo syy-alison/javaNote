@@ -390,7 +390,7 @@ Producer其主要功能是负责向Broker发送消息，工作原理如下图所
   - 实现接口：org.apache.kafka,clients.producer.partitioner
 
 
-### 2.2.4. 消息消费
+### 2.2.4. 消息消费(Rebalance)
 
 - 每个Consumer group保存自己的位移信息，表示要消费的下一条消息的offset。每个消费者根据策略来消费Partition的消息，策略主要有两种，一种是轮询策略，另一种是根据消费者的消费能力进行计算，算出每个消费者消费的分区数量。
 
@@ -966,4 +966,153 @@ RocketMQ参考了kafka的设计，同时又在kafka的基础上做了调整。
 RocketMQ 
 
 ![image-20240714153053078](assets/image-20240714153053078.png)
+
+### 2.6.5. 如何使用Kafka使用延迟消息
+
+1. 在发送延迟消息时不直接发送到目标topic，而是发送到一个用于处理延迟消息的topic，例如`delay-minutes-1`
+
+2. 写一段代码拉取`delay-minutes-1`中的消息，将满足条件的消息发送到真正的目标主题里。
+
+   1. KafkaConsumer 提供了暂停和恢复的API函数，调用消费者的暂停方法后就无法再拉取到新的消息，同时长时间不消费kafka也不会认为这个消费者已经挂掉了。另外为了能够更加优雅，我们会启动一个定时器来替换`sleep`。，完整流程如下图，当消费者发现消息不满足条件时，我们就暂停消费者，并把偏移量seek到上一次消费的位置以便等待下一个周期再次消费这条消息。
+   2. 创建多个topic用于处理不同时间的延迟消息，例如`delay-minutes-1` `delay-minutes-5` `delay-minutes-10` `delay-minutes-15`以提供指数级别的延迟时间，这样比一个topic要好很多，毕竟在顺序拉取消息的时候，有一条消息不满足条件，后面的将全部进行排队。
+
+   ![image-20240716221141641](assets/image-20240716221141641.png)
+
+```java
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+
+@SpringBootTest
+public class DelayQueueTest {
+
+    private KafkaConsumer<String, String> consumer;
+    private KafkaProducer<String, String> producer;
+    private volatile Boolean exit = false;
+    private final Object lock = new Object();
+    private final String servers = "";
+
+    @BeforeEach
+    void initConsumer() {
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "d");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "5000");
+        consumer = new KafkaConsumer<>(props, new StringDeserializer(), new StringDeserializer());
+    }
+
+    @BeforeEach
+    void initProducer() {
+        Properties props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        producer = new KafkaProducer<>(props);
+    }
+
+    @Test
+    void testDelayQueue() throws JsonProcessingException, InterruptedException {
+        String topic = "delay-minutes-1";
+        List<String> topics = Collections.singletonList(topic);
+        consumer.subscribe(topics);
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                synchronized (lock) {
+                    consumer.resume(consumer.paused());
+                    lock.notify();
+                }
+            }
+        }, 0, 1000);
+
+        do {
+
+            synchronized (lock) {
+                ConsumerRecords<String, String> consumerRecords = consumer.poll(Duration.ofMillis(200));
+
+                if (consumerRecords.isEmpty()) {
+                    lock.wait();
+                    continue;
+                }
+
+                boolean timed = false;
+                for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
+                    long timestamp = consumerRecord.timestamp();
+                    TopicPartition topicPartition = new TopicPartition(consumerRecord.topic(), consumerRecord.partition());
+                    if (timestamp + 60 * 1000 < System.currentTimeMillis()) {
+
+                        String value = consumerRecord.value();
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        JsonNode jsonNode = objectMapper.readTree(value);
+                        JsonNode jsonNodeTopic = jsonNode.get("topic");
+
+                        String appTopic = null, appKey = null, appValue = null;
+
+                        if (jsonNodeTopic != null) {
+                            appTopic = jsonNodeTopic.asText();
+                        }
+                        if (appTopic == null) {
+                            continue;
+                        }
+                        JsonNode jsonNodeKey = jsonNode.get("key");
+                        if (jsonNodeKey != null) {
+                            appKey = jsonNode.asText();
+                        }
+
+                        JsonNode jsonNodeValue = jsonNode.get("value");
+                        if (jsonNodeValue != null) {
+                            appValue = jsonNodeValue.asText();
+                        }
+                        // send to application topic
+                        ProducerRecord<String, String> producerRecord = new ProducerRecord<>(appTopic, appKey, appValue);
+                        try {
+                            producer.send(producerRecord).get();
+                            // success. commit message
+                            OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(consumerRecord.offset() + 1);
+                            HashMap<TopicPartition, OffsetAndMetadata> metadataHashMap = new HashMap<>();
+                            metadataHashMap.put(topicPartition, offsetAndMetadata);
+                            consumer.commitSync(metadataHashMap);
+                        } catch (ExecutionException e) {
+                            consumer.pause(Collections.singletonList(topicPartition));
+                            consumer.seek(topicPartition, consumerRecord.offset());
+                            timed = true;
+                            break;
+                        }
+                    } else {
+                        consumer.pause(Collections.singletonList(topicPartition));
+                        consumer.seek(topicPartition, consumerRecord.offset());
+                        timed = true;
+                        break;
+                    }
+                }
+
+                if (timed) {
+                    lock.wait();
+                }
+            }
+        } while (!exit);
+
+    }
+}
+
+```
 

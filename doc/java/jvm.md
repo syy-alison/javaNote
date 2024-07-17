@@ -1128,6 +1128,10 @@ Java 虚拟机所管理的内存中最大的一块，Java 堆是所有线程共�
 - **`jhat`** (JVM Heap Dump Browser) : 用于分析 heapdump 文件，它会建立一个 HTTP/HTML 服务器，让用户可以在浏览器上查看分析结果。JDK9 移除了 jhat；
 - **`jstack`** (Stack Trace for Java) : 生成虚拟机当前时刻的线程快照，线程快照就是当前虚拟机内每一条线程正在执行的方法堆栈的集合。
 
+```
+./jmap -dump:live,format=b,file=heap.hprof <pid>    //其中pid是JVM进程的id
+```
+
 ## JDK 可视化分析工具
 
 https://javaguide.cn/java/jvm/jdk-monitoring-and-troubleshooting-tools.html#jconsole-java-%E7%9B%91%E8%A7%86%E4%B8%8E%E7%AE%A1%E7%90%86%E6%8E%A7%E5%88%B6%E5%8F%B0
