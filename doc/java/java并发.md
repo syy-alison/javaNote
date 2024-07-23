@@ -938,9 +938,12 @@ class Philosopher extends Thread {
 ## 3.4 synchronized VS ReentrantLock
 
 1. 两者都是可重入锁。
+   1. synchronized：每个锁关联一个线程持有者和一个计数器，当计数器为0 时表示该锁没有被任何线程持有，那么任何线程都可以获得该锁而调用相应方法。当一个线程请求成功后，JVM会几下持有锁的线程，并将计数器计为1。此时其他线程请求该锁，则必须等待，而持有该所的线程如果再次请求这个锁，就可以再次拿到这个锁，同时计数器会递增。当线程退出一个synchronized方法时，计数器会递减，如果计数器为0则释放该锁。
+   2. RetrantLock 利用 AQS 的的 state 状态来判断资源是否已锁，同一线程重入加锁， state 的状态 +1 ; 同一线程重入解锁, state 状态 -1 (解锁必须为当前独占线程，否则异常); 当 state 为 0 时解锁成功。
+
 2. `synhronized`依赖于`JVM`,而`ReentrantLock`依赖于`API`，AQS。
-3. 等待可中断：`ReentrantLock`提供了一个能够中断等待锁的线程的机制。也就是说正在等待的线程可以选择放弃等待，改为处理其他事情。
-4. 可实现公平锁：`ReentrantLock`可以指定是公平锁还是非公平锁，而`synchronized`只能是非公平锁。
+3. 等待可中断： `ReentrantLock` 中的` lockInterruptibly() `方法使得线程可以在被阻塞时响应中断，比如一个线程 t1 通过 `lockInterruptibly() `方法获取到一个可重入锁，并执行一个长时间的任务，另一个线程通过 `interrupt()` 方法就可以立刻打断 t1 线程的执行，来获取t1持有的那个可重入锁。而通过 `ReentrantLock` 的 `lock()` 方法或者` Synchronized` 持有锁的线程是不会响应其他线程的 `interrupt()` 方法的，直到该方法主动释放锁之后才会响应` interrupt() `方法。
+4. 可实现公平锁：`synchronized` 关键字是一种非公平锁，先抢到锁的线程先执行。而 `ReentrantLock` 的构造方法中允许设置 true/false 来实现公平、非公平锁，如果设置为 true ，则线程获取锁要遵循"先来后到"的规则，每次都会构造一个线程 Node ，然后到双向链表的"尾巴"后面排队，等待前面的 Node 释放锁资源。
 5. 可实现选择性通知：`synchronized`关键字与`wait()`和`notify()/notifyAll()`方法相结合可以实现等待/通知机制。`ReentrantLock`类借助`Condition`接口与`newCondition()`方法有选择性的进行线程通知。
 
 # 五、volatile关键字（可见性&有序性）
@@ -1521,6 +1524,140 @@ public interface Future<V> {
 
 简单理解就是：我有一个任务，提交给了 `Future` 来处理。任务执行期间我自己可以去做任何想做的事情。并且，在这期间我还可以取消任务以及获取任务的执行状态。一段时间之后，我就可以 `Future` 那里直接取出任务执行结果。
 
+### Future原理
+
+```java
+/**
+ * 创建线程的方式：Callable
+ * @Author Tan
+ */
+public class CallableTest implements Callable<Integer> {
+
+    @Override
+    public Integer call() throws Exception {
+        System.out.println(Thread.currentThread().getName() + " 执行。。。");
+        TimeUnit.SECONDS.sleep(3L);
+        return 9527;
+    }
+
+    public static void main(String[] args) {
+        /*
+         * @Date: 2020-06-09 17:11
+         * Step 1: 创建
+         */
+        CallableTest runnableTest = new CallableTest() ;
+        FutureTask<Integer> futureTask = new FutureTask<>(runnableTest);
+
+        /*
+         * @Date: 2020-06-09 17:12
+         * Step 2: 执行
+         */
+        new Thread(futureTask,"CallableTest").start();
+
+        /*
+         * @Date: 2020-06-09 17:12
+         * Step 3: 获取执行结果
+         */
+        try {
+            Integer integer = futureTask.get();
+            System.out.println("执行结果：" + integer);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+```
+
+- 首先` CallableTest implements Callable` 表明 `CallableTest `是个 `Callable`
+
+- `FutureTask futureTask = new FutureTask<>(runnableTest);` 就是 FutureTask包装Callable对象，这里包装了我们自定义的实例 `CallableTest`。这里看下`FutureTask`的构造函数.  实际上就是传递callable，然后把状态变成 NEW（表示新建状态）
+
+  ```java
+  public FutureTask(Callable<V> callable) {
+      if (callable == null)
+          throw new NullPointerException();
+      this.callable = callable;
+      this.state = NEW;       // ensure visibility of callable
+  }
+  
+  ```
+
+- 接着是 `new Thread(futureTask,“CallableTest”).start();`，前面说了，FutureTask 实现了 Runnable，所以可以用来创建Thread实例，看Thread的构造函数就知道了。
+
+  ```java
+  public Thread(Runnable target, String name) {
+      init(null, target, name, 0);
+  }
+  ```
+
+- 到这里就是走线程执行的路线了，Thread.start之后，start0() 将线程的执行交给底层调度，得到调度权之后就执行Runnable.run，也就是我们定义的线程执行内容了
+
+  ```java
+  public synchronized void start() {
+  	......
+  	start0();
+   	......
+  }
+  ```
+
+- FutureTask 的run方法
+
+![image-20240721205605123](assets/image-20240721205605123.png)
+
+- FutureTask 的get方法
+
+  ![image-20240721205628610](assets/image-20240721205628610.png)
+
+- get阻塞的原理
+
+  ```java
+  private int awaitDone(boolean timed, long nanos)
+      throws InterruptedException {
+      final long deadline = timed ? System.nanoTime() + nanos : 0L;
+      WaitNode q = null;
+      boolean queued = false;
+      //如果没有达到返回条件时就一直循环
+      //这里就是通过循环完成的阻塞
+      for (;;) {
+          if (Thread.interrupted()) {
+              removeWaiter(q);
+              throw new InterruptedException();
+          }
+  
+          int s = state;
+          // 状态变成完成之后就返回
+          if (s > COMPLETING) {
+              if (q != null)
+                  q.thread = null;
+              return s;
+          }
+          else if (s == COMPLETING) // cannot time out yet
+              Thread.yield();
+          else if (q == null)
+              q = new WaitNode();
+          else if (!queued)
+              queued = UNSAFE.compareAndSwapObject(this, waitersOffset,
+                                                   q.next = waiters, q);
+          else if (timed) {
+              nanos = deadline - System.nanoTime();
+              if (nanos <= 0L) {
+                  removeWaiter(q);
+                  return state;
+              }
+              LockSupport.parkNanos(this, nanos);
+          }
+          else
+              LockSupport.park(this);
+      }
+  }
+  
+  ```
+
+  
+
 ### Callable 和 Future 有什么关系？
 
 `FutureTask` 提供了 `Future` 接口的基本实现，常用来封装 `Callable` 和 `Runnable`，具有取消任务、查看任务是否执行完成以及获取任务执行结果的方法。`ExecutorService.submit()` 方法返回的其实就是 `Future` 的实现类 `FutureTask` 。
@@ -1558,7 +1695,48 @@ public FutureTask(Runnable runnable, V result) {
 
 Java 8 才被引入`CompletableFuture` 类可以解决`Future` 的这些缺陷。`CompletableFuture` 除了提供了更为好用和强大的 `Future` 特性之外，还提供了函数式编程、异步任务编排组合（可以将多个异步任务串联起来，组成一个完整的链式调用）等能力。
 
+假如任务3依赖于任务1和2的结果
 
+```java
+ExecutorService executor = Executors.newFixedThreadPool(5);
+CompletableFuture<String> cf1 = CompletableFuture.supplyAsync(() -> {
+    System.out.println("执行step 1");
+    return "step1 result";
+}, executor);
+CompletableFuture<String> cf2 = CompletableFuture.supplyAsync(() -> {
+    System.out.println("执行step 2");
+    return "step2 result";
+});
+cf1.thenCombine(cf2, (result1, result2) -> {
+    System.out.println(result1 + " , " + result2);
+    System.out.println("执行step 3");
+    return "step3 result";
+}).thenAccept(result3 -> System.out.println(result3));
+```
+
+###  CompletableFuture的设计思想
+
+CompletableFuture中包含两个字段：**result**和**stack**。result用于存储当前CF的结果，stack（Completion）表示当前CF完成后需要触发的依赖动作（Dependency Actions），去触发依赖它的CF的计算，依赖动作可以有多个（表示有多个依赖它的CF），以栈（[Treiber stack](https://en.wikipedia.org/wiki/Treiber_stack)）的形式存储，stack表示栈顶元素
+
+这种方式类似“观察者模式”，依赖动作（Dependency Action）都封装在一个单独Completion子类中。下面是Completion类关系结构图。CompletableFuture中的每个方法都对应了图中的一个Completion的子类，Completion本身是**观察者**的基类。
+
+- UniCompletion继承了Completion，是一元依赖的基类，例如thenApply的实现类UniApply就继承自UniCompletion。
+- BiCompletion继承了UniCompletion，是二元依赖的基类，同时也是多元依赖的基类。例如thenCombine的实现类BiRelay就继承自BiCompletion。
+
+![image-20240721224545204](assets/image-20240721224545204.png)
+
+被观察者
+
+1. 每个CompletableFuture都可以被看作一个被观察者，其内部有一个Completion类型的链表成员变量stack，用来存储注册到其中的所有观察者。当被观察者执行完成后会弹栈stack属性，依次通知注册到其中的观察者。上面例子中步骤fn2就是作为观察者被封装在UniApply中。
+2. 被观察者CF中的result属性，用来存储返回结果数据。这里可能是一次RPC调用的返回值，也可能是任意对象，在上面的例子中对应步骤fn1的执行结果。
+
+观察者
+
+CompletableFuture支持很多回调方法，例如thenAccept、thenApply、exceptionally等，这些方法接收一个函数类型的参数f，生成一个Completion类型的对象（即观察者），并将入参函数f赋值给Completion的成员变量fn，然后检查当前CF是否已处于完成状态（即result != null），如果已完成直接触发fn，否则将观察者Completion加入到CF的观察者链stack中，再次尝试触发，如果被观察者未执行完则其执行完毕之后通知触发。
+
+1. 观察者中的dep属性：指向其对应的CompletableFuture，在上面的例子中dep指向CF2。
+2. 观察者中的src属性：指向其依赖的CompletableFuture，在上面的例子中src指向CF1。
+3. 观察者Completion中的fn属性：用来存储具体的等待被回调的函数。这里需要注意的是不同的回调方法（thenAccept、thenApply、exceptionally等）接收的函数类型也不同，即fn的类型有很多种，在上面的例子中fn指向fn2。
 
 # 九、CAS与原子类
 
@@ -1756,6 +1934,8 @@ AQS 是一个用来构建锁和同步器的框架，使用 AQS 能简单且高�
 ## AQS原理
 
 https://blog.csdn.net/u010445301/article/details/125590758
+
+![image-20240721194002996](assets/image-20240721194002996.png)
 
 **AQS 核心思想是，如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线程，并且将共享资源设置为锁定状态。如果被请求的共享资源被占用，那么就需要一套线程阻塞等待以及被唤醒时锁分配的机制，这个机制 AQS 是用 CLH 队列锁实现的，即将暂时获取不到锁的线程加入到队列中。**CLH：Craig、Landin and Hagersten队列，是单向链表，AQS中的队列是CLH变体的虚拟双向队列（FIFO），AQS是通过将每条请求共享资源的线程封装成一个节点来实现锁的分配。暂时获取不到锁的线程将被加入到该队列中。AQS 将每条请求共享资源的线程封装成一个 CLH 队列锁的一个结点（Node）来实现锁的分配。在 CLH 队列锁中，一个节点表示一个线程，它保存着线程的引用（thread）、 当前节点在队列中的状态（waitStatus）、前驱节点（prev）、后继节点（next）。
 

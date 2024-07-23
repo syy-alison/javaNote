@@ -446,6 +446,17 @@ WHERE bornDate is Not NULL
 
 ![img](https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic2.zhimg.com%2Fv2-9558e847d122f104dc9acb19e600496d_b.jpg&refer=http%3A%2F%2Fpic2.zhimg.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1621134684&t=49a6b78deb38980ef8ccd1d2951528bf)
 
+**1. 内连接 (INNER JOIN)**内连接返回两个表中有匹配关系的行。**示例**: 这个查询返回每个员工及其所在的部门名称。
+
+```sql
+SELECT employees.name, departments.name
+FROM employees
+INNER JOIN departments
+ON employees.department_id = departments.id;
+```
+
+
+
 ```mysql
 --  ======== 联表查询=====
 -- 查询参加了考试的同学(学号，姓名，科目编号，分数)

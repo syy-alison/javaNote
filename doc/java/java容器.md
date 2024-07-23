@@ -49,24 +49,21 @@
   
 - `ArrayQueue`: **`Object[]` 数组** + 双指针
   
-- `DelayQueue`:`PriorityQueue`。
+- `DelayQueue`:  是 `BlockingQueue` 的一种，底层是一个基于 `PriorityQueue` 实现的一个无界队列，是线程安全的。。
 
 
 - **Map**
-
-  - `HashMap`:**JDK1.8之前**采用**数组+链表**的数据结构，链表是用于解决哈希冲突而存在的;**JDK1.8之后**采用**数据+链表/红黑树**的数据结构，当链表长度大于某个阈值时，会把链表转成红黑树(转成红黑树之前会先判断当前数组的长度，如果数组长度小于64，则先会对数组进行扩容)，减少搜索时间。
-
-  - `LinkedHashMap`：**数组+链表/红黑树**。同时在此基础上，增加了一个双向链表，使得上面的结构可以保持键值对的插入顺序。
-
-  - `HashTable`：**数组+链表**。
-
-  - `TreeMap`:**红黑树**。
+- `HashMap`:**JDK1.8之前**采用**数组+链表**的数据结构，链表是用于解决哈希冲突而存在的;**JDK1.8之后**采用**数据+链表/红黑树**的数据结构，当链表长度大于某个阈值时，会把链表转成红黑树(转成红黑树之前会先判断当前数组的长度，如果数组长度小于64，则先会对数组进行扩容)，减少搜索时间。
+  
+- `LinkedHashMap`：**数组+链表/红黑树**。同时在此基础上，增加了一个双向链表，使得上面的结构可以保持键值对的插入顺序。
+  
+- `HashTable`：**数组+链表**。
+  
+- `TreeMap`: **红黑树**。
 
 # 3 List
 
 ## 3.1 ArrayList
-
-
 
 `ArrayList` 继承于 `AbstractList` ，实现了 `List`, `RandomAccess`, `Cloneable`, `java.io.Serializable` 这些接口。
 
@@ -481,8 +478,6 @@ public  class Person implements Comparable<Person> {
 
 ```
 
-
-
 - `comparator`接口实际上出自`java.util`包它有一个`compare(Object obj1,Object obj2)`方法来排序。
 
 ```java
@@ -585,8 +580,6 @@ public  class Person implements Comparable<Person> {
 
 `PriorityQueue` 在面试中可能更多的会出现在手撕算法的时候，典型例题包括堆排序、求第K大的数、带权图的遍历等，所以需要会熟练使用才行。
 
-
-
 ## 5.4 BlockingQueue
 
 `BlockingQueue` （阻塞队列）是一个接口，继承自 `Queue`。`BlockingQueue`阻塞的原因是其支持当队列没有元素时一直阻塞，直到有元素；还支持如果队列已满，一直等到队列可以放入新元素时再放入。
@@ -610,8 +603,210 @@ Java 中常用的阻塞队列实现类有以下几种：
 2. `LinkedBlockingQueue`：使用单向链表实现的可选有界阻塞队列。在创建时可以指定容量大小，如果不指定则默认为`Integer.MAX_VALUE`。和`ArrayBlockingQueue`不同的是， 它仅支持非公平的锁访问机制。
 3. `PriorityBlockingQueue`：支持优先级排序的无界阻塞队列。元素必须实现`Comparable`接口或者在构造函数中传入`Comparator`对象，并且不能插入 null 元素。
 4. `SynchronousQueue`：同步队列，是一种不存储元素的阻塞队列。每个插入操作都必须等待对应的删除操作，反之删除操作也必须等待插入操作。因此，`SynchronousQueue`通常用于线程之间的直接传递数据。
-5. `DelayQueue`：延迟队列，其中的元素只有到了其指定的延迟时间，才能够从队列中出队。
-6. …
+5. `DelayQueue`：延迟队列，其中的元素只有到了其指定的延迟时间，才能够从队列中出队.
+
+阻塞队列的思想：
+
+- 当阻塞队列数据为空时，所有的消费者线程都会被阻塞，等待队列非空。
+- 当生产者往队列里填充数据后，队列就会通知消费者队列非空，消费者此时就可以进来消费。
+- 当阻塞队列因为消费者消费过慢或者生产者存放元素过快导致队列填满时无法容纳新元素时，生产者就会被阻塞，等待队列非满时继续存放元素。
+- 当消费者从队列中消费一个元素之后，队列就会通知生产者队列非满，生产者可以继续填充数据了。
+
+阻塞队列就是基于非空和非满两个条件实现生产者和消费者之间的交互，尽管这些交互流程和等待通知的机制实现非常复杂，好在 Doug Lea 的操刀之下已将阻塞队列的细节屏蔽，我们只需调用 `put`、`take`、`offer`、`poll` 等 API 即可实现多线程之间的生产和消费。
+
+### 5.4.1 DelayQueue
+
+原理
+
+`DelayQueue` 底层是使用优先队列 `PriorityQueue` 来存储元素，而 `PriorityQueue` 采用二叉小顶堆的思想确保值小的元素排在最前面，这就使得 `DelayQueue` 对于延迟任务优先级的管理就变得十分方便了。同时 `DelayQueue` 为了保证线程安全还用到了可重入锁 `ReentrantLock`,确保单位时间内只有一个线程可以操作延迟队列。最后，为了实现多线程之间等待和唤醒的交互效率，`DelayQueue` 还用到了 `Condition`，通过 `Condition` 的 `await` 和 `signal` 方法完成多线程之间的等待唤醒。
+
+`DelayQueue` 的 4 个核心成员变量如下：
+
+- `lock` : 我们都知道 `DelayQueue` 存取是线程安全的，所以为了保证存取元素时线程安全，我们就需要在存取时上锁，而 `DelayQueue` 就是基于 `ReentrantLock` 独占锁确保存取操作的线程安全。
+- `q` : 延迟队列要求元素按照到期时间进行升序排列，所以元素添加时势必需要进行优先级排序,所以 `DelayQueue` 底层元素的存取都是通过这个优先队列 `PriorityQueue` 的成员变量 `q` 来管理的。
+- `leader` : 延迟队列的任务只有到期之后才会执行,对于没有到期的任务只有等待,为了确保优先级最高的任务到期后可以即刻被执行,设计者就用 `leader` 来管理延迟任务，只有 `leader` 所指向的线程才具备定时等待任务到期执行的权限，而其他那些优先级低的任务只能无限期等待，直到 `leader` 线程执行完手头的延迟任务后唤醒它。
+- `available` : 上文讲述 `leader` 线程时提到的等待唤醒操作的交互就是通过 `available` 实现的，假如线程 1 尝试在空的 `DelayQueue` 获取任务时，`available` 就会将其放入等待队列中。直到有一个线程添加一个延迟任务后通过 `available` 的 `signal` 方法将其唤醒。
+
+```java
+//可重入锁，实现线程安全的关键
+private final transient ReentrantLock lock = new ReentrantLock();
+//延迟队列底层存储数据的集合,确保元素按照到期时间升序排列
+private final PriorityQueue<E> q = new PriorityQueue<E>();
+
+//指向准备执行优先级最高的线程
+private Thread leader = null;
+//实现多线程之间等待唤醒的交互
+private final Condition available = lock.newCondition();
+```
+
+使用：
+
+我们这里希望任务可以按照我们预期的时间执行，例如提交 3 个任务，分别要求 1s、2s、3s 后执行，即使是乱序添加，1s 后要求 1s 执行的任务会准时执行。
+
+对此我们可以使用 `DelayQueue` 来实现,所以我们首先需要继承 `Delayed` 实现 `DelayedTask`，实现 `getDelay` 方法以及优先级比较 `compareTo`。
+
+```java
+/**
+ * 延迟任务
+ */
+public class DelayedTask implements Delayed {
+    /**
+     * 任务到期时间
+     */
+    private long executeTime;
+    /**
+     * 任务
+     */
+    private Runnable task;
+
+    public DelayedTask(long delay, Runnable task) {
+        this.executeTime = System.currentTimeMillis() + delay;
+        this.task = task;
+    }
+
+    /**
+     * 查看当前任务还有多久到期
+     * @param unit
+     * @return
+     */
+    @Override
+    public long getDelay(TimeUnit unit) {
+        return unit.convert(executeTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 延迟队列需要到期时间升序入队，所以我们需要实现compareTo进行到期时间比较
+     * @param o
+     * @return
+     */
+    @Override
+    public int compareTo(Delayed o) {
+        return Long.compare(this.executeTime, ((DelayedTask) o).executeTime);
+    }
+
+    public void execute() {
+        task.run();
+    }
+}
+
+```
+
+完成任务的封装之后，使用就很简单了，设置好多久到期然后将任务提交到延迟队列中即可。
+
+```java
+// 创建延迟队列，并添加任务
+DelayQueue < DelayedTask > delayQueue = new DelayQueue < > ();
+
+//分别添加1s、2s、3s到期的任务
+delayQueue.add(new DelayedTask(2000, () -> System.out.println("Task 2")));
+delayQueue.add(new DelayedTask(1000, () -> System.out.println("Task 1")));
+delayQueue.add(new DelayedTask(3000, () -> System.out.println("Task 3")));
+
+// 取出任务并执行
+while (!delayQueue.isEmpty()) {
+  //阻塞获取最先到期的任务
+  DelayedTask task = delayQueue.take();
+  if (task != null) {
+    task.execute();
+  }
+}
+
+```
+
+
+
+### 5.4.3 ArrayBlockingQueue
+
+`ArrayBlockingQueue` 是 `BlockingQueue` 接口的有界队列实现类，常用于多线程之间的数据共享，底层采用数组实现，从其名字就能看出来了。
+
+`ArrayBlockingQueue` 的容量有限，一旦创建，容量不能改变。
+
+为了保证线程安全，`ArrayBlockingQueue` 的并发控制采用可重入锁 `ReentrantLock` ，不管是插入操作还是读取操作，都需要获取到锁才能进行操作。并且，它还支持公平和非公平两种方式的锁访问机制，默认是非公平锁。
+
+`ArrayBlockingQueue` 虽名为阻塞队列，但也支持非阻塞获取和新增元素（例如 `poll()` 和 `offer(E e)` 方法），只是队列满时添加元素会抛出异常，队列为空时获取的元素为 null，一般不会使用。
+
+**原理**
+
+`ArrayBlockingQueue` 的实现原理主要分为以下几点（这里以阻塞式获取和新增元素为例介绍）：
+
+- `ArrayBlockingQueue` 内部维护一个定长的数组用于存储元素。
+- 通过使用 `ReentrantLock` 锁对象对读写操作进行同步，即通过锁机制来实现线程安全。
+- 通过 `Condition` 实现线程间的等待和唤醒操作。
+
+这里再详细介绍一下线程间的等待和唤醒具体的实现（不需要记具体的方法，面试中回答要点即可）：
+
+- 当队列已满时，生产者线程会调用 `notFull.await()` 方法让生产者进行等待，等待队列非满时插入（非满条件）。
+- 当队列为空时，消费者线程会调用 `notEmpty.await()`方法让消费者进行等待，等待队列非空时消费（非空条件）。
+- 当有新的元素被添加时，生产者线程会调用 `notEmpty.signal()`方法唤醒正在等待消费的消费者线程。
+- 当队列中有元素被取出时，消费者线程会调用 `notFull.signal()`方法唤醒正在等待插入元素的生产者线程。
+
+**使用**
+
+```java
+public class ProducerConsumerExample {
+
+    public static void main(String[] args) throws InterruptedException {
+
+        // 创建一个大小为 5 的 ArrayBlockingQueue
+        ArrayBlockingQueue<Integer> queue = new ArrayBlockingQueue<>(5);
+
+        // 创建生产者线程
+        Thread producer = new Thread(() -> {
+            try {
+                for (int i = 1; i <= 10; i++) {
+                    // 向队列中添加元素，如果队列已满则阻塞等待
+                    queue.put(i);
+                    System.out.println("生产者添加元素：" + i);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        });
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        // 创建消费者线程
+        Thread consumer = new Thread(() -> {
+            try {
+                int count = 0;
+                while (true) {
+
+                    // 从队列中取出元素，如果队列为空则阻塞等待
+                    int element = queue.take();
+                    System.out.println("消费者取出元素：" + element);
+                    ++count;
+                    if (count == 10) {
+                        break;
+                    }
+                }
+
+                countDownLatch.countDown();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        });
+
+        // 启动线程
+        producer.start();
+        consumer.start();
+
+        // 等待线程结束
+        producer.join();
+        consumer.join();
+
+        countDownLatch.await();
+
+        producer.interrupt();
+        consumer.interrupt();
+    }
+
+}
+
+```
+
+
 
 # 6 Map接口
 
@@ -1189,7 +1384,7 @@ public class HashMapTest {
 
 3. **扩容rehash**
 
-   ConcurrentHashMap 的扩容只会扩容到原来的两倍。老数组里的数据移动到新的数组时，位置要么不变（当(e.hash & oldCap) = 0时），要么变为 index+ oldSize，参数里的 node 会在扩容之后使用链表**头插法**插入到指定位置。
+   ConcurrentHashMap 的扩容（对Segment扩容）只会扩容到原来的两倍。老数组里的数据移动到新的数组时，位置要么不变（当(e.hash & oldCap) = 0时），要么变为 index+ oldSize，参数里的 node 会在扩容之后使用链表**头插法**插入到指定位置。
 
 4. **get()操作**
 
@@ -1309,95 +1504,6 @@ map.put(key, anotherValue);
 - TreeMap继承了NavigableMap接口，NavigableMap接口继承了SortedMap接口，可支持一系列的导航定位以及导航操作的方法，当然只是提供了接口，需要TreeMap自己去实现；
 - TreeMap实现了Cloneable接口，可被克隆，实现了Serializable接口，可序列化；
 - TreeMap因为是通过红黑树实现，红黑树结构天然支持排序，默认情况下通过Key值的自然顺序进行排序；
-
-# ArrayBlockingQueue
-
-Java 阻塞队列的历史可以追溯到 JDK1.5 版本，当时 Java 平台增加了 `java.util.concurrent`，即我们常说的 JUC 包，其中包含了各种并发流程控制工具、并发容器、原子类等。这其中自然也包含了我们这篇文章所讨论的阻塞队列。
-
-为了解决高并发场景下多线程之间数据共享的问题，JDK1.5 版本中出现了 `ArrayBlockingQueue` 和 `LinkedBlockingQueue`，它们是带有生产者-消费者模式实现的并发容器。其中，`ArrayBlockingQueue` 是有界队列，即添加的元素达到上限之后，再次添加就会被阻塞或者抛出异常。而 `LinkedBlockingQueue` 则由链表构成的队列，正是因为链表的特性，所以 `LinkedBlockingQueue` 在添加元素上并不会向 `ArrayBlockingQueue` 那样有着较多的约束，所以 `LinkedBlockingQueue` 设置队列是否有界是可选的(注意这里的无界并不是指可以添加任务数量的元素，而是说队列的大小默认为 `Integer.MAX_VALUE`，近乎于无限大)。
-
-阻塞队列就是典型的生产者-消费者模型，它可以做到以下几点:
-
-1. 当阻塞队列数据为空时，所有的消费者线程都会被阻塞，等待队列非空。
-2. 当生产者往队列里填充数据后，队列就会通知消费者队列非空，消费者此时就可以进来消费。
-3. 当阻塞队列因为消费者消费过慢或者生产者存放元素过快导致队列填满时无法容纳新元素时，生产者就会被阻塞，等待队列非满时继续存放元素。
-4. 当消费者从队列中消费一个元素之后，队列就会通知生产者队列非满，生产者可以继续填充数据了。
-
-```java
-public class ProducerConsumerExample {
-
-    public static void main(String[] args) throws InterruptedException {
-
-        // 创建一个大小为 5 的 ArrayBlockingQueue
-        ArrayBlockingQueue<Integer> queue = new ArrayBlockingQueue<>(5);
-
-        // 创建生产者线程
-        Thread producer = new Thread(() -> {
-            try {
-                for (int i = 1; i <= 10; i++) {
-                    // 向队列中添加元素，如果队列已满则阻塞等待
-                    queue.put(i);
-                    System.out.println("生产者添加元素：" + i);
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        });
-
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-
-        // 创建消费者线程
-        Thread consumer = new Thread(() -> {
-            try {
-                int count = 0;
-                while (true) {
-
-                    // 从队列中取出元素，如果队列为空则阻塞等待
-                    int element = queue.take();
-                    System.out.println("消费者取出元素：" + element);
-                    ++count;
-                    if (count == 10) {
-                        break;
-                    }
-                }
-
-                countDownLatch.countDown();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        });
-
-        // 启动线程
-        producer.start();
-        consumer.start();
-
-        // 等待线程结束
-        producer.join();
-        consumer.join();
-
-        countDownLatch.await();
-
-        producer.interrupt();
-        consumer.interrupt();
-    }
-
-}
-
-```
-
-### ArrayBlockingQueue 是什么？它的特点是什么？
-
-`ArrayBlockingQueue` 是 `BlockingQueue` 接口的有界队列实现类，常用于多线程之间的数据共享，底层采用数组实现，从其名字就能看出来了。
-
-`ArrayBlockingQueue` 的容量有限，一旦创建，容量不能改变。
-
-为了保证线程安全，`ArrayBlockingQueue` 的并发控制采用可重入锁 `ReentrantLock` ，不管是插入操作还是读取操作，都需要获取到锁才能进行操作。并且，它还支持公平和非公平两种方式的锁访问机制，默认是非公平锁。
-
-`ArrayBlockingQueue` 虽名为阻塞队列，但也支持非阻塞获取和新增元素（例如 `poll()` 和 `offer(E e)` 方法），只是队列满时添加元素会抛出异常，队列为空时获取的元素为 null，一般不会使用。
-
-
 
 #  对比
 

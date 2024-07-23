@@ -211,9 +211,11 @@ public abstract class ClassLoader {
 
 #### 程序计数器
 
+- 物理上是通过寄存器来实现的。
+- 作用：记住下一条JVM指定的地址。如果线程正在执行的是一个`java`方法，这个计数器记录的是正在执行的虚拟机字节码指令的地址，如果正在执行的是本地方法，这个计数器则应该为空。
+
 - 字节码解释器通过改变程序计数器来依次读取指令，从而**实现代码的流程控制**，如:顺序执行，选择，循环，异常处理。
 - 在多线程的情况下，程序计数器用于**记录当前线程的执行位置**，从而当线程被切换回来的时候能够直到该线程上次运行到哪了。
-- 如果线程正在执行的是一个`java`方法，这个计数器记录的是正在执行的虚拟机字节码指令的地址，如果正在执行的是本地方法，这个计数器则应该为空。
 - 此内存区域是唯一一个没有规定任何`OutOfMemoryError`情况的区域。
 #### 虚拟机栈
 - **每个线程运行所需要的内存，称为虚拟机栈。**
@@ -261,7 +263,7 @@ public abstract class ClassLoader {
 - 方法区属于是 JVM 运行时数据区域的一块逻辑区域，是各个线程共享的内存区域。《Java 虚拟机规范》只是规定了有方法区这么个概念和它的作用，方法区到底要如何实现那就是虚拟机自己要考虑的事情了。也就是说，在不同的虚拟机实现上，方法区的实现是不同的。
 
 - 当虚拟机要使用一个类时，它需要读取并解析 Class 文件获取相关信息，再将信息存入到方法区。方法区会存储已被虚拟机加载的 **类信息、字段信息、方法信息、常量、静态变量、即时编译器编译后的代码缓存等数据**。
-- 可以选择不实现垃圾回收，回收目标主要时针对常量池的回收和对类型的卸载。
+- 可以选择不实现垃圾回收，回收目标主要是针对常量池的回收和对类型的卸载。
 - 永久代是 JDK 1.8 之前的方法区实现，JDK 1.8 及以后方法区的实现变成了元空间。变换的原因：
   - 整个永久代有一个 JVM 本身设置的固定大小上限，无法进行调整（也就是受到 JVM 内存的限制），而元空间使用的是本地内存，受本机可用内存的限制，虽然元空间仍旧可能溢出，但是比原来出现的几率会更小。当元空间溢出时会得到如下错误：`java.lang.OutOfMemoryError: MetaSpace`
   - 元空间里面存放的是类的元数据，这样加载多少类的元数据就不由 `MaxPermSize` 控制了, 而由系统的实际可用空间来控制，这样能加载的类就更多了。
@@ -337,6 +339,7 @@ public class Test {
 #### 直接内存
 
 - 直接内存并不是虚拟机运行时数据区的一部分，而是属于操作系统内存。
+- 直接内存是操作系统和Java代码**都可以访问的一块区域**，无需将代码从系统内存复制到Java堆内存，从而提高了效率.
 - 在 JDK 1.4 中新引入了 NIO 类，它可以使用 Native 函数库直接分配堆外内存，然后通过 Java 堆里的 DirectByteBuffer 对象作为这块内存的引用进行操作。这样能在一些场景中显著提高性能，因为避免了在堆内存和堆外内存来回拷贝数据。
 - 属于操作系统，常见于NIO操作时，**用于数据缓冲区**
 - 分配回收成本较高，但读写性能高
@@ -350,7 +353,7 @@ public class Test {
 
 ![.\images\使用直接内存.png](.\images\使用直接内存.png)
 
-直接内存是操作系统和Java代码**都可以访问的一块区域**，无需将代码从系统内存复制到Java堆内存，从而提高了效率.
+
 
 ### 1.3 执行引擎
 
@@ -539,11 +542,20 @@ public class TestFrame{//1
    public class Demo1 {
    	public static void main(String[] args) {
    		final int _4M = 4*1024*1024;
-   		//使用引用队列，用于移除引用为空的软引用对象
-   		ReferenceQueue<byte[]> queue = new ReferenceQueue<>();
+   	
    		//使用软引用对象 list和SoftReference是强引用，而SoftReference和byte数组则是软引用
    		List<SoftReference<byte[]>> list = new ArrayList<>();
-   		SoftReference<byte[]> ref= new SoftReference<>(new byte[_4M]);
+       //使用引用队列，用于移除引用为空的软引用对象，
+   		ReferenceQueue<byte[]> queue = new ReferenceQueue<>();
+       //关联的
+       for(int i = 0; i < 5; i++){
+         //关联了引用队列，当软引用所关联的byte[]被回收时，软引用自己会加入到queue中去
+         SoftReference<byte[]> ref= new SoftReference<>(new byte[_4M],queue);
+         System.out.println(ref.get());
+         list.add(ref);
+          System.out.println(list.size());
+       }
+   		
    
    		//遍历引用队列，如果有元素，则移除
    		Reference<? extends byte[]> poll = queue.poll();
@@ -553,6 +565,10 @@ public class TestFrame{//1
    			//移动到引用队列中的下一个元素
    			poll = queue.poll();
    		}
+       System.out.println("=");
+       for(SoftReference<byte[]> reference : list){
+         System.out.println(reference.get());
+       }
    	}
    }
    ```
@@ -563,6 +579,28 @@ public class TestFrame{//1
 
    - 虚引用的一个体现是**释放直接内存所分配的内存**，当引用的对象ByteBuffer被垃圾回收以后，虚引用对象Cleaner就会被放入引用队列中，然后调用Cleaner的clean方法来释放直接内存。
    - 如上图，B对象不再引用ByteBuffer对象，ByteBuffer就会被回收。但是直接内存中的内存还未被回收。这时需要将虚引用对象Cleaner放入引用队列中，然后调用它的clean方法来释放直接内存
+
+   ```java
+   import java.lang.ref.PhantomReference;
+   import java.lang.ref.ReferenceQueue;
+   
+   /**
+    * 虚引用
+    */
+   public class PhantomRefTest {
+       private static ReferenceQueue<PhantomRefTest> queue = new ReferenceQueue<>();
+   
+       public static void main(String[] args) {
+           PhantomReference<PhantomRefTest> reference = new PhantomReference<>(new PhantomRefTest(), queue);
+           System.out.println(reference.get());
+           System.out.println(queue.poll());
+           System.gc();
+           System.out.println(reference.get());
+           System.out.println(queue.poll());
+       }
+   }
+   
+   ```
 
 5. ##### 终结器引用：所有的类都继承自Object类，Object类有一个finalize方法。当某个对象不再被其他的对象所引用时，会先将终结器引用对象放入引用队列中，然后根据终结器引用对象找到它所引用的对象，然后调用该对象的finalize方法。调用以后，该对象就可以被垃圾回收了。
 
@@ -1122,14 +1160,24 @@ Java 虚拟机所管理的内存中最大的一块，Java 堆是所有线程共�
 这些命令在 JDK 安装目录下的 bin 目录下：
 
 - **`jps`** (JVM Process Status）: 类似 UNIX 的 `ps` 命令。用于查看所有 Java 进程的启动类、传入参数和 Java 虚拟机参数等信息；
+
+  ![image-20240722222103927](assets/image-20240722222103927.png)
+
 - **`jstat`**（JVM Statistics Monitoring Tool）: 用于收集 HotSpot 虚拟机各方面的运行数据;
+
 - **`jinfo`** (Configuration Info for Java) : Configuration Info for Java,显示虚拟机配置信息;
-- **`jmap`** (Memory Map for Java) : 生成堆转储快照;
+
+- **`jmap`** (Memory Map for Java) : 生成堆转储快照; ` jmap -heap` 进程ID 查看堆内存的占用情况
+
+  ![image-20240722222214250](assets/image-20240722222214250.png)
+
 - **`jhat`** (JVM Heap Dump Browser) : 用于分析 heapdump 文件，它会建立一个 HTTP/HTML 服务器，让用户可以在浏览器上查看分析结果。JDK9 移除了 jhat；
-- **`jstack`** (Stack Trace for Java) : 生成虚拟机当前时刻的线程快照，线程快照就是当前虚拟机内每一条线程正在执行的方法堆栈的集合。
+
+- **`jstack 进程ID`** (Stack Trace for Java) : 生成虚拟机当前时刻的线程快照，线程快照就是当前虚拟机内每一条线程正在执行的方法堆栈的集合。
 
 ```
 ./jmap -dump:live,format=b,file=heap.hprof <pid>    //其中pid是JVM进程的id
+jmap -heap 进程ID 查看堆内存的占用情况
 ```
 
 ## JDK 可视化分析工具
@@ -1139,3 +1187,15 @@ https://javaguide.cn/java/jvm/jdk-monitoring-and-troubleshooting-tools.html#jcon
 - JConsole 是基于 JMX 的可视化监视、管理工具。可以很方便的监视本地及远程服务器的 java 进程的内存使用情况。你可以在控制台输入`jconsole`命令启动或者在 JDK 目录下的 bin 目录找到`jconsole.exe`然后双击启动。
 - VisualVM 提供在 Java 虚拟机 (Java Virtual Machine, JVM) 上运行的 Java 应用程序的详细信息。
 - MAT（Memory Analyzer Tool）是一款快速便捷且功能强大丰富的 JVM 堆内存离线分析工具。其通过展现 JVM 异常时所记录的运行时堆转储快照（Heap dump）状态（正常运行时也可以做堆转储分析），帮助定位内存泄漏问题或优化大内存消耗逻辑。
+
+## 问题排查
+
+#### CPU占用过多
+
+![image-20240722215737312](assets/image-20240722215737312.png)
+
+#### 迟迟拿不到结果（死锁）
+
+`jstack 进程Id`
+
+![image-20240722220253446](assets/image-20240722220253446.png)

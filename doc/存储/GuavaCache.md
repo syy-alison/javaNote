@@ -16,8 +16,6 @@ https://blog.csdn.net/weixin_38569499/article/details/103720524
 
 #### 2、构造方式
 
-
-
 ```java
 @Slf4j
 public class CacheTest {
@@ -136,8 +134,6 @@ Guava Cache的数据结构，和JDK 1.7版本的ConcurrentHashMap非常相似：
 
  如果缓存设置了最大容量（maximumSize，或者maximumWeight），则在添加缓存的时候，会去判断当前容量是否已经超限。如果缓存容量超限，则会通过LRU算法，淘汰掉最久没有访问的缓存。
 
-
-
 # **Caffeine**
 
 **Caffeine 的性能为何如此优秀？**
@@ -164,7 +160,6 @@ W-TinyLFU 算法解决了传统 LFU 算法的两个常见缺陷：
 于第一个问题，W-TinyLFU 算法是通过一种叫做 Count-Min Sketch（CMS） 的算法解决的，基于这个算法实现了 LFU 的低内存占用版本 TinyLFU ：
 
 - Count–Min Sketch 算法类似[布隆过滤器 (Bloom Filter)](https://javaguide.cn/cs-basics/data-structure/bloom-filter.html)。其实，本质上来说，它就是基于 Bloom Filter 演进得来的，借鉴了 Bloom Filter 的核心思想。因此，这两者存在很多共同点比如占用的内存空间都非常小，都依赖 Hash 算法，统计结果都存在一定的误差。不过，这点误差影响并不大，很多场景比如频率统计我们本身并不需要得到一个精确值。不同的是，Bloom Filter 和 Count–Min Sketch 的应用场景不同，前者主要用于确定指定的元素是否存在，后者主要用于频率统计。
-- 
 
 
 
