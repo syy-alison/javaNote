@@ -389,8 +389,14 @@ Producer其主要功能是负责向Broker发送消息，工作原理如下图所
   - 自定义的分区策略，需要显示的配置生产者的参数partitioner.class
   - 实现接口：org.apache.kafka,clients.producer.partitioner
 
-
 ### 2.2.4. 消息消费(Rebalance)
+
+举个例子 在消费组ConsumerGroupA里有个消费者A1， 已经消费到了100条数据， 这个时候你又新起了一个消费者， 但是呢这个新起的消费者的消费组和消费组A的名称不同，我们暂且称之为消费组ConsumerGroupB. 根据kafka的机制， 这个新起的消费组中的消费者再消费分区数据的时候，auto.offset.reset参数就起作用了。
+
+当消费主题的是一个**新的消费组**，或者**指定offset的消费方式，offset不存在**，那么应该如何消费
+
+- latest(默认) ：只消费自己启动之后发送到主题的消息
+- earliest：第一次从头开始消费，以后按照消费offset记录继续消费，这个需要区别于consumer.seekToBeginning(每次都从头开始消费)
 
 - 每个Consumer group保存自己的位移信息，表示要消费的下一条消息的offset。每个消费者根据策略来消费Partition的消息，策略主要有两种，一种是轮询策略，另一种是根据消费者的消费能力进行计算，算出每个消费者消费的分区数量。
 

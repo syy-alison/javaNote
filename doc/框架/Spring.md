@@ -1,3 +1,7 @@
+[TOC]
+
+
+
 ## Spring 基础
 
 ### 什么是 Spring 框架?
@@ -495,7 +499,7 @@ MVC 是一种设计模式，Spring MVC 是一款很优秀的 MVC 框架。Spring
 - **`Handler`**：**请求处理器**，处理实际请求的处理器。
 - **`ViewResolver`**：**视图解析器**，根据 `Handler` 返回的逻辑视图 / 视图，解析并渲染真正的视图，并传递给 `DispatcherServlet` 响应客户端
 
-### SpringMVC 工作原理了解吗?
+# SpringMVC 工作原理了解吗?
 
 ![image-20240616214329072.png](assets/image-20240616214329072.png)
 
