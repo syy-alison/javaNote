@@ -191,6 +191,8 @@ public abstract class ClassLoader {
    所以，在 JVM 生命周期内，由 jvm 自带的类加载器加载的类是不会被卸载的。但是由我们自定义的类加载器加载的类是可能被卸载的。
 ### 1.2 运行时数据区
 
+
+
 ![JVM运行时数据区域.png](./images/JVM运行时数据区域.png)
 
 ![Java运行时数据区域JDK1.8.png](./images/Java运行时数据区域JDK1.8.png)
@@ -408,6 +410,77 @@ public class TestFrame{//1
 ![代码6.png](./images/代码6.png)
 
 - 之后释放method2的栈帧内存。返回到method1,之后method1执行完，其栈帧也要释放掉。
+
+### 1.5 类变量、成员变量、局部变量存放位置
+
+实例变量：也叫成员变量、全局变量。
+
+- 定义在类中、方法外，有默认初始值。
+- 通过对象的引用来访问实例变量。
+- 随着对象的建立而建立，随着对象的消失而消失，存在于对象所在的堆内存中。
+
+类变量：也叫静态变量。
+
+- 定义在类中、方法外，有关键字 static 修饰，有默认初始值。
+- 可以通过对象调用，也可以通过类名调用。
+- 生命周期与类共存亡。
+- 对象的引用存放在**方法区**，如果用关键字 new 为引用类型的静态变量分配对象，该对象在堆中的地址也会存放在方法区。！但是**对象本身仍在堆内存中**。
+
+局部变量：
+
+- 定义在方法中，或者方法的形参，没有初始化值。
+- 生命周期与方法共存亡。
+- 存放在栈中。局部的对象的引用所指对象在堆中的**地址**在存储在了栈中。
+
+```java
+public class  PersonDemo
+{
+    public static void main(String[] args) 
+    {   //局部变量p和形参args都在main方法的栈帧中
+        //new Person()对象在堆中分配空间
+        Person p = new Person();
+        //sum在栈中，new int[10]在堆中分配空间
+        int[] sum = new int[10];
+    }
+}
+class Person
+{   //实例变量name和age在堆(Heap)中分配空间
+    private String name;
+    private int age;
+    //类变量(引用类型)name1和"cn"都在方法区(Method Area)
+    private static String name1 = "cn";
+    //类变量(引用类型)name2在方法区(Method Area)
+    //new String("cn")对象在堆(Heap)中分配空间
+    private static String name2 = new String("cn");
+    //num在堆中，new int[10]也在堆中
+    private int[] num = new int[10];
+    Person(String name,int age)
+    {   
+        //this及形参name、age在构造方法被调用时
+        //会在构造方法的栈帧中开辟空间
+        this.name = name;
+        this.age = age;
+    }
+    //setName()方法在方法区中
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+    //speak()方法在方法区中
+    public void speak()
+    {
+        System.out.println(this.name+"..."+this.age);
+    }
+    //showCountry()方法在方法区中
+    public static void  showCountry()
+    {
+        System.out.println("country="+country);
+    }
+}
+
+```
+
+
 
 # 二、HotSpot虚拟机
 
